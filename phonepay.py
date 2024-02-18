@@ -272,3 +272,340 @@ def map_insurance():
     connection.commit()
 
     return map_ins_data
+
+def map_trans():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/map/transaction/hover/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"district_name":[],"transaction_count":[],"transaction_amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['hoverDataList']:
+                    name=i['name']
+                    count=i['metric'][0]['count']
+                    amount=i['metric'][0]['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["district_name"].append(name)
+                    column["transaction_count"].append(count)
+                    column["transaction_amount"].append(amount)
+    map_trans_data=pd.DataFrame(column)
+    map_trans_data["state"].unique()
+    map_trans_data["state"]=map_trans_data["state"].str.replace("-"," ")
+    map_trans_data["state"]=map_trans_data["state"].str.title()
+    map_trans_data["state"]=map_trans_data["state"].str.replace("&","and")
+    
+    map_trans_table='''CREATE TABLE if not exists map_transaction(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    District_Name varchar(150),
+                                                    Count bigint,
+                                                    Amount decimal(65,10)
+                                                    )'''
+    cursor.execute(map_trans_table)
+    connection.commit()
+
+    for index, row in map_trans_data.iterrows():
+        insert_query = '''INSERT INTO map_transaction(State,Year,Quarter,
+                                                            District_Name,Count,Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['district_name'],
+            row['transaction_count'],
+            row['transaction_amount']
+        ))
+
+    connection.commit()
+    return map_trans_data
+
+def map_users():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/map/user/hover/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"district_name":[],"registered_users":[],"app_opens":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['hoverData'].items():
+                    dist_name=i[0]
+                    reg_users=i[1]['registeredUsers']
+                    app_opens=i[1]['appOpens']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["district_name"].append(dist_name)
+                    column["registered_users"].append(reg_users)
+                    column["app_opens"].append(app_opens)
+
+    map_users_data=pd.DataFrame(column)
+    map_users_data["state"].unique()
+    map_users_data["state"]=map_users_data["state"].str.replace("-"," ")
+    map_users_data["state"]=map_users_data["state"].str.title()
+    map_users_data["state"]=map_users_data["state"].str.replace("&","and")
+
+    map_users_table='''CREATE TABLE if not exists map_users(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    District_Name varchar(150),
+                                                    Registered_Users bigint,
+                                                    App_Opens bigint
+                                                    )'''
+    cursor.execute(map_users_table)
+    connection.commit()
+    
+
+    for index, row in map_users_data.iterrows():
+        insert_query = '''INSERT INTO map_users(State,Year,Quarter,
+                                                            District_Name,Registered_Users,App_Opens)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['district_name'],
+            row['registered_users'],
+            row['app_opens']
+        ))
+
+    connection.commit()
+
+    return map_users_data
+
+def top_insurance():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/top/insurance/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"entity_name":[],"count":[],"amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['districts']:
+                    entity_name=i['entityName']
+                    count=i['metric']['count']
+                    amount=i['metric']['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column['entity_name'].append(entity_name)
+                    column['count'].append(count)
+                    column['amount'].append(amount)
+
+    top_ins_data=pd.DataFrame(column)
+    top_ins_data["state"].unique()
+    top_ins_data["state"]=top_ins_data["state"].str.replace("-"," ")
+    top_ins_data["state"]=top_ins_data["state"].str.title()
+    top_ins_data["state"]=top_ins_data["state"].str.replace("&","and")
+
+    top_ins_table='''CREATE TABLE if not exists top_insurance(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    City_Name varchar(50),
+                                                    Count bigint,
+                                                    Amount bigint
+                                                    )'''
+    cursor.execute(top_ins_table)
+    connection.commit() 
+
+    for index, row in top_ins_data.iterrows():
+        insert_query = '''INSERT INTO top_insurance(State,Year,Quarter,City_Name,Count,Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['entity_name'],
+            row['count'],
+            row['amount']
+        ))
+
+    connection.commit()
+    return top_ins_data
+
+def top_trans():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/top/transaction/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"entity_name":[],"top_count":[],"top_amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+
+                for i in A['data']['districts']:
+                    entity_name=i['entityName']
+                    count=i['metric']['count']
+                    amount=i['metric']['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column['entity_name'].append(entity_name)
+                    column['top_count'].append(count)
+                    column['top_amount'].append(amount)
+
+    top_trans_data=pd.DataFrame(column)
+    top_trans_data["state"].unique()
+    top_trans_data["state"]=top_trans_data["state"].str.replace("-"," ")
+    top_trans_data["state"]=top_trans_data["state"].str.title()
+    top_trans_data["state"]=top_trans_data["state"].str.replace("&","and")
+
+    top_trans_table='''CREATE TABLE if not exists top_transaction(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    District_Name varchar(150),
+                                                    Count bigint,
+                                                    Amount decimal(65,10)
+                                                    )'''
+    cursor.execute(top_trans_table)
+    connection.commit()
+
+    for index, row in top_trans_data.iterrows():
+        insert_query = '''INSERT INTO top_transaction(State,Year,Quarter,
+                                                            District_Name,Count,Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['entity_name'],
+            row['top_count'],
+            row['top_amount']
+        ))
+
+    connection.commit()
+    return top_trans_data
+
+def top_users():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/top/user/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"pincodes":[],"registered_users":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['pincodes']:
+                    name=i['name']
+                    reg_users=i['registeredUsers']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["pincodes"].append(name)
+                    column["registered_users"].append(reg_users)
+    top_users_data=pd.DataFrame(column)
+    top_users_data["state"].unique()
+    top_users_data["state"]=top_users_data["state"].str.replace("-"," ")
+    top_users_data["state"]=top_users_data["state"].str.title()
+    top_users_data["state"]=top_users_data["state"].str.replace("&","and")
+
+    top_users_table='''CREATE TABLE if not exists top_users(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    Pincodes bigint,
+                                                    Registered_Users bigint
+                                                    )'''
+    cursor.execute(top_users_table)
+    connection.commit()
+    
+
+    for index, row in top_users_data.iterrows():
+        insert_query = '''INSERT INTO top_users(State,Year,Quarter,
+                                                            Pincodes,Registered_Users)
+                          VALUES (%s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['pincodes'],
+            row['registered_users']
+            
+        ))
+
+    connection.commit()
+
+    
+    return top_users_data
+    
+
+
+
