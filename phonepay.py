@@ -1,0 +1,274 @@
+import os
+import json
+import pandas as pd
+import mysql.connector
+
+def agg_insurance():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/aggregated/insurance/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"transaction_name":[],"count":[],"amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['transactionData']:
+                    trans_name=i['name']
+                    count=i['paymentInstruments'][0]['count']
+                    amount=i['paymentInstruments'][0]['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["transaction_name"].append(trans_name)
+                    column["count"].append(count)
+                    column["amount"].append(amount)
+    agg_ins_data=pd.DataFrame(column)
+    agg_ins_data["state"].unique()
+    agg_ins_data["state"]=agg_ins_data["state"].str.replace("-"," ")
+    agg_ins_data["state"]=agg_ins_data["state"].str.title()
+    agg_ins_data["state"]=agg_ins_data["state"].str.replace("&","and")
+
+    agg_ins_table='''CREATE TABLE if not exists aggregated_insurance(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    Transaction_Name varchar(50),
+                                                    Count bigint,
+                                                    Amount bigint
+                                                    )'''
+    cursor.execute(agg_ins_table)
+    connection.commit() 
+
+    for index, row in agg_ins_data.iterrows():
+        insert_query = '''INSERT INTO aggregated_insurance(State,Year,Quarter,Transaction_Name,Count,Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['transaction_name'],
+            row['count'],
+            row['amount']
+        ))
+
+    connection.commit()
+
+    return agg_ins_data
+
+def agg_trans():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/aggregated/transaction/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"transaction_type":[],"transaction_count":[],"transaction_amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['transactionData']:
+                    name=i['name']
+                    count=i['paymentInstruments'][0]['count']
+                    amount=i['paymentInstruments'][0]['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["transaction_type"].append(name)
+                    column["transaction_count"].append(count)
+                    column["transaction_amount"].append(amount)
+    agg_trans_data=pd.DataFrame(column)
+    agg_trans_data["state"].unique()
+    agg_trans_data["state"]=agg_trans_data["state"].str.replace("-"," ")
+    agg_trans_data["state"]=agg_trans_data["state"].str.title()
+    agg_trans_data["state"]=agg_trans_data["state"].str.replace("&","and")
+   
+
+    agg_trans_table='''CREATE TABLE if not exists aggregated_transaction(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    Transaction_Type varchar(150),
+                                                    Transaction_Count bigint,
+                                                    Transaction_Amount bigint
+                                                    )'''
+    cursor.execute(agg_trans_table)
+    connection.commit()
+
+    for index, row in agg_trans_data.iterrows():
+        insert_query = '''INSERT INTO aggregated_transaction(State,Year,Quarter,
+                                                            Transaction_Type,Transaction_Count,Transaction_Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['transaction_type'],
+            row['transaction_count'],
+            row['transaction_amount']
+        ))
+
+    connection.commit()
+
+    return agg_trans_data
+
+def agg_user():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    
+    path2="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/aggregated/user/country/india/state/"
+    user_list=os.listdir(path2)
+    columns={"state":[],"year":[],"quarter":[],"brand_name":[],"count":[],"percentage":[]}
+    for state in user_list:
+        state_link=path2+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                file=years_link+jsonfile
+                data=open(file,"r")
+                B=json.load(data)
+                try:
+                    for i in B['data']['usersByDevice']:
+                        brand=i['brand']
+                        count=i['count']
+                        percentage=i['percentage']
+
+                        columns["state"].append(state)
+                        columns["year"].append(years)
+                        columns["quarter"].append(int(jsonfile.strip(".json")))
+                        columns["brand_name"].append(brand)
+                        columns["count"].append(count)
+                        columns["percentage"].append(percentage)
+                except:
+                    pass
+    user_data=pd.DataFrame(columns)
+    user_data["state"].unique()
+    user_data["state"]=user_data["state"].str.replace("-"," ")
+    user_data["state"]=user_data["state"].str.title()
+    user_data["state"]=user_data["state"].str.replace("&","and")
+    
+    agg_user_table='''CREATE TABLE if not exists aggregated_user(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    Brand_Name varchar(150),
+                                                    Count bigint,
+                                                    Percentage FLOAT
+                                                    )'''
+    cursor.execute(agg_user_table)
+    connection.commit()
+
+    for index, row in user_data.iterrows():
+        insert_query = '''INSERT INTO aggregated_user(State,Year,Quarter,
+                                                            Brand_Name,Count,Percentage)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['brand_name'],
+            row['count'],
+            row['percentage']
+        ))
+
+    connection.commit()
+
+    return user_data    
+
+
+def map_insurance():
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+    
+    path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/map/insurance/hover/country/india/state/"
+    path_list=os.listdir(path)
+    column={"state":[],"year":[],"quarter":[],"district_name":[],"count":[],"amount":[]}
+    for state in path_list:
+        state_link=path+state+"/"
+        state_list=os.listdir(state_link)
+        for years in state_list:
+            years_link=state_link+years+"/"
+            years_list=os.listdir(years_link)
+            for jsonfile in years_list:
+                files=years_link+jsonfile
+                data=open(files,"r")
+                A=json.load(data)
+                for i in A['data']['hoverDataList']:
+                    dis_name=i['name']
+                    count=i['metric'][0]['count']
+                    amount=i['metric'][0]['amount']
+
+                    column["state"].append(state)
+                    column["year"].append(years)
+                    column["quarter"].append(int(jsonfile.strip(".json")))
+                    column["district_name"].append(dis_name)
+                    column["count"].append(count)
+                    column["amount"].append(amount)
+    map_ins_data=pd.DataFrame(column)
+    map_ins_data["state"].unique()
+    map_ins_data["state"]=map_ins_data["state"].str.replace("-"," ")
+    map_ins_data["state"]=map_ins_data["state"].str.title()
+    map_ins_data["state"]=map_ins_data["state"].str.replace("&","and")
+
+    map_ins_table='''CREATE TABLE if not exists map_insurance(
+                                                    State varchar(50),
+                                                    Year int,
+                                                    Quarter int,
+                                                    District_Name varchar(150),
+                                                    Count bigint,
+                                                    Amount bigint
+                                                    )'''
+    cursor.execute(map_ins_table)
+    connection.commit()
+
+    for index, row in map_ins_data.iterrows():
+        insert_query = '''INSERT INTO map_insurance(State,Year,Quarter,
+                                                            District_Name,Count,Amount)
+                          VALUES (%s, %s, %s, %s, %s, %s)'''
+        cursor.execute(insert_query, (
+            row['state'],
+            row['year'],
+            row['quarter'],
+            row['district_name'],
+            row['count'],
+            row['amount']
+        ))
+
+    connection.commit()
+
+    return map_ins_data
