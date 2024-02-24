@@ -744,7 +744,7 @@ with st.sidebar:
     video_file = open('Phonepe.mp4', 'rb')
     video_bytes = video_file.read()
     st.video(video_bytes)
-    st.link_button("Install Phonepe",
+    st.link_button("Install Now",
                    "https://play.google.com/store/apps/details?id=com.phonepe.app&hl=en_IN&gl=US")
 
     #color_theme_list = ['Blues', 'Cividis', 'Greens', 'Inferno', 'Magma', 'Plasma', 'Reds', 'Rainbow']
@@ -805,6 +805,7 @@ def aggregated_transaction(user_year):
     AT.reset_index(drop=True,inplace=True)
     ATgroup=AT.groupby("State")[["Count","Amount"]].sum()
     ATgroup.reset_index(inplace=True)
+
     fig_at=px.bar(ATgroup,x="State",y="Count",title=f"Aggregated-Transaction Count for the year {user_year}",
                 color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
     st.plotly_chart(fig_at)
@@ -813,37 +814,76 @@ def aggregated_transaction(user_year):
                 color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
     st.plotly_chart(fig_at1)
 
+def aggregated_transaction_map(user_year):
+    AT=agg_trans_df[agg_trans_df["Year"]==user_year]
+    AT.reset_index(drop=True,inplace=True)
+    ATgroup=AT.groupby("State")[["Count","Amount"]].sum()
+    ATgroup.reset_index(inplace=True)
+
+    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
+    response=requests.get(url)
+    data=json.loads(response.content)
+    state_names=[]
+    for feauture in data["features"]:
+        state_names.append(feauture["properties"]["ST_NM"])
+    state_names.sort()
+
+    fig_india=px.choropleth(ATgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Amount",color_continuous_scale="Rainbow",
+                            range_color=(ATgroup["Amount"].min(),ATgroup["Amount"].max()),
+                            hover_name="State",title=f"Aggregated-Insurance Amount for the year {user_year}",
+                            fitbounds="locations",height=500,width=500)
+    fig_india.update_geos(visible = False)
+
+    fig_india1=px.choropleth(ATgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Count",color_continuous_scale="Rainbow",
+                            range_color=(ATgroup["Count"].min(),ATgroup["Count"].max()),
+                            hover_name="State",title=f"Aggregated-Insurance Count for the year {user_year}",
+                            fitbounds="locations",height=500,width=500)
+    fig_india1.update_geos(visible = False)
+
+    return fig_india, fig_india1
+        
+
 
 if selected == "AGGREGATION":
-    col11,col12=st.columns(2)
-    with col11:
-        option1 = st.selectbox(
-        'Choose the Aggregation-Data option',
-        ('Insurance', 'Transaction', 'Users'))
-        if option1 == 'Insurance':
-            year_list = list(agg_ins_df.Year.unique())[::-1]
-            option2 = st.selectbox("Choose the year",year_list)
-            op = st.radio(
-                "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
-            if op == ":rainbow[BAR CHART]":
-                aggregated_insurance(option2)
-                
-            elif op == ":rainbow[GEOGRAPHICAL VIEW]":
-                fig_india, fig_india1 = aggregated_insurance_map(option2)
+    option1 = st.selectbox(
+    'Choose the Aggregation-Data option',
+    ('Insurance', 'Transaction', 'Users'))
+    if option1 == 'Insurance':
+        year_list = list(agg_ins_df.Year.unique())[::-1]
+        option2 = st.selectbox("Choose the year",year_list)
+        op = st.radio(
+            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
+        col1,col2=st.columns(2)
+        
+        if op == ":rainbow[BAR CHART]":
+            aggregated_insurance(option2)
+           
+        elif op == ":rainbow[GEOGRAPHICAL VIEW]":
+            fig_india, fig_india1 = aggregated_insurance_map(option2)
+            with col1:
                 st.plotly_chart(fig_india)
+            with col2:
+                st.plotly_chart(fig_india1)
+            
+
+    elif option1 == 'Transaction':
+        year_list = list(agg_trans_df.Year.unique())[::-1]
+        option2 = st.selectbox("Choose the year",year_list)
+        op = st.radio(
+            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
+        col3,col4=st.columns(2)
+        if op == ":rainbow[BAR CHART]":
+            aggregated_transaction(option2)
+            
+        elif op == ":rainbow[GEOGRAPHICAL VIEW]":
+            fig_india, fig_india1 = aggregated_transaction_map(option2)
+            with col3:
+                st.plotly_chart(fig_india)
+            with col4:
                 st.plotly_chart(fig_india1)
                 
-
-        elif option1 == 'Transaction':
-            year_list = list(agg_trans_df.Year.unique())[::-1]
-            option2 = st.selectbox("Choose the year",year_list)
-            op = st.radio(
-                "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
-            if op == ":rainbow[BAR CHART]":
-                aggregated_transaction(option2)
-                
-            elif op == ":rainbow[GEOGRAPHICAL VIEW]":
-                st.write("load")
                 
                 
             
