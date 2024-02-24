@@ -115,9 +115,9 @@ def agg_trans():
                                                     State varchar(50),
                                                     Year int,
                                                     Quarter int,
-                                                    Transaction_Type varchar(150),
-                                                    Transaction_Count bigint,
-                                                    Transaction_Amount bigint
+                                                    Transaction_Name varchar(150),
+                                                    Count bigint,
+                                                    Amount bigint
                                                     )'''
     cursor.execute(agg_trans_table)
     connection.commit()
@@ -455,7 +455,7 @@ def top_insurance():
                                                     State varchar(50),
                                                     Year int,
                                                     Quarter int,
-                                                    City_Name varchar(50),
+                                                    District_Name varchar(50),
                                                     Count bigint,
                                                     Amount bigint
                                                     )'''
@@ -463,7 +463,7 @@ def top_insurance():
     connection.commit() 
 
     for index, row in top_ins_data.iterrows():
-        insert_query = '''INSERT INTO top_insurance(State,Year,Quarter,City_Name,Count,Amount)
+        insert_query = '''INSERT INTO top_insurance(State,Year,Quarter,District_Name,Count,Amount)
                           VALUES (%s, %s, %s, %s, %s, %s)'''
         cursor.execute(insert_query, (
             row['state'],
@@ -623,8 +623,8 @@ connection.commit()
 #agg_trans_df
 cursor.execute("SELECT * FROM aggregated_transaction")
 table2=cursor.fetchall()
-agg_trans_df=pd.DataFrame(table2,columns=("State","Year","Quarter","Transaction_Type",
-                                          "Transaction_Count","Transaction_Amount"))
+agg_trans_df=pd.DataFrame(table2,columns=("State","Year","Quarter","Transaction_Name",
+                                          "Count","Amount"))
 connection.commit()
 #agg_user_df
 cursor.execute("SELECT * FROM aggregated_user")
@@ -652,7 +652,7 @@ connection.commit()
 #top_ins_df
 cursor.execute("SELECT * FROM top_insurance")
 table7=cursor.fetchall()
-top_ins_df=pd.DataFrame(table7,columns=("State","Year","Quarter","City_Name","Count","Amount"))
+top_ins_df=pd.DataFrame(table7,columns=("State","Year","Quarter","District_Name","Count","Amount"))
 connection.commit()
 #top_trans_df
 cursor.execute("SELECT * FROM top_transaction")
@@ -689,7 +689,25 @@ selected=option_menu(menu_title="Choose the option for Data Exploration",
                     default_index=0,
                     orientation="horizontal"
                     )
-
+def aggregated_insurance(user_year):
+        AI=agg_ins_df[agg_ins_df["Year"]==user_year]
+        AI.reset_index(drop=True,inplace=True)
+        AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
+        AIgroup.reset_index(inplace=True)
+        fig_ai=px.bar(AIgroup,x="State",y="Count",title="Aggregated Insurance-Transaction Count",
+                    color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+        st.plotly_chart(fig_ai)
 
 if selected == "AGGREGATION":
+    option = st.selectbox(
+    'Choose the Aggregation-Data option',
+    ('Insurance', 'Transaction', 'Users'))
+    if option == 'Insurance':
+        op = st.radio(
+            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
+        if op == ":rainbow[BAR CHART]":
+            aggregated_insurance(2020)
+            
+        else:
+            st.write("load")
     
