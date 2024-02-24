@@ -7,6 +7,15 @@ from streamlit_option_menu import option_menu
 import plotly.express as px
 import altair as alt
 
+import os
+import json
+import pandas as pd
+import mysql.connector
+import streamlit as st
+from streamlit_option_menu import option_menu
+import plotly.express as px
+import altair as alt
+
 def agg_insurance():
     connection = mysql.connector.connect(
         user='root',
@@ -17,7 +26,7 @@ def agg_insurance():
     cursor=connection.cursor()
     path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/aggregated/insurance/country/india/state/"
     path_list=os.listdir(path)
-    column={"state":[],"year":[],"quarter":[],"transaction_name":[],"transaction_count":[],"amount":[]}
+    column={"state":[],"year":[],"quarter":[],"transaction_name":[],"count":[],"amount":[]}
     for state in path_list:
         state_link=path+state+"/"
         state_list=os.listdir(state_link)
@@ -37,7 +46,7 @@ def agg_insurance():
                     column["year"].append(years)
                     column["quarter"].append(int(jsonfile.strip(".json")))
                     column["transaction_name"].append(trans_name)
-                    column["transaction_count"].append(count)
+                    column["count"].append(count)
                     column["amount"].append(amount)
     agg_ins_data=pd.DataFrame(column)
     agg_ins_data["state"].unique()
@@ -50,14 +59,14 @@ def agg_insurance():
                                                     Year int,
                                                     Quarter int,
                                                     Transaction_Name varchar(50),
-                                                    Transaction_Count bigint,
+                                                    Count bigint,
                                                     Amount bigint
                                                     )'''
     cursor.execute(agg_ins_table)
     connection.commit() 
 
     for index, row in agg_ins_data.iterrows():
-        insert_query = '''INSERT INTO aggregated_insurance(State,Year,Quarter,Transaction_Name,Transaction_Count,Amount)
+        insert_query = '''INSERT INTO aggregated_insurance(State,Year,Quarter,Transaction_Name,Count,Amount)
                           VALUES (%s, %s, %s, %s, %s, %s)'''
         cursor.execute(insert_query, (
             row['state'],
@@ -82,7 +91,7 @@ def agg_trans():
     cursor=connection.cursor()
     path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/aggregated/transaction/country/india/state/"
     path_list=os.listdir(path)
-    column={"state":[],"year":[],"quarter":[],"transaction_name":[],"transaction_count":[],"amount":[]}
+    column={"state":[],"year":[],"quarter":[],"transaction_name":[],"count":[],"amount":[]}
     for state in path_list:
         state_link=path+state+"/"
         state_list=os.listdir(state_link)
@@ -102,7 +111,7 @@ def agg_trans():
                     column["year"].append(years)
                     column["quarter"].append(int(jsonfile.strip(".json")))
                     column["transaction_name"].append(name)
-                    column["transaction_count"].append(count)
+                    column["count"].append(count)
                     column["amount"].append(amount)
     agg_trans_data=pd.DataFrame(column)
     agg_trans_data["state"].unique()
@@ -124,15 +133,15 @@ def agg_trans():
 
     for index, row in agg_trans_data.iterrows():
         insert_query = '''INSERT INTO aggregated_transaction(State,Year,Quarter,
-                                                            Transaction_Type,Transaction_Count,Transaction_Amount)
+                                                            Transaction_Name,Count,Amount)
                           VALUES (%s, %s, %s, %s, %s, %s)'''
         cursor.execute(insert_query, (
             row['state'],
             row['year'],
             row['quarter'],
-            row['transaction_type'],
-            row['transaction_count'],
-            row['transaction_amount']
+            row['transaction_name'],
+            row['count'],
+            row['amount']
         ))
 
     connection.commit()
@@ -336,8 +345,8 @@ def map_trans():
             row['year'],
             row['quarter'],
             row['district_name'],
-            row['transaction_count'],
-            row['transaction_amount']
+            row['count'],
+            row['amount']
         ))
 
     connection.commit()
@@ -422,7 +431,7 @@ def top_insurance():
 
     path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/top/insurance/country/india/state/"
     path_list=os.listdir(path)
-    column={"state":[],"year":[],"quarter":[],"entity_name":[],"count":[],"amount":[]}
+    column={"state":[],"year":[],"quarter":[],"district_name":[],"count":[],"amount":[]}
     for state in path_list:
         state_link=path+state+"/"
         state_list=os.listdir(state_link)
@@ -441,7 +450,7 @@ def top_insurance():
                     column["state"].append(state)
                     column["year"].append(years)
                     column["quarter"].append(int(jsonfile.strip(".json")))
-                    column['entity_name'].append(entity_name)
+                    column['district_name'].append(entity_name)
                     column['count'].append(count)
                     column['amount'].append(amount)
 
@@ -469,7 +478,7 @@ def top_insurance():
             row['state'],
             row['year'],
             row['quarter'],
-            row['entity_name'],
+            row['district_name'],
             row['count'],
             row['amount']
         ))
@@ -488,7 +497,7 @@ def top_trans():
 
     path="C:/Users/91822/OneDrive/Documents/Capstone-02/Capstone2/pulse/data/top/transaction/country/india/state/"
     path_list=os.listdir(path)
-    column={"state":[],"year":[],"quarter":[],"entity_name":[],"count":[],"amount":[]}
+    column={"state":[],"year":[],"quarter":[],"district_name":[],"count":[],"amount":[]}
     for state in path_list:
         state_link=path+state+"/"
         state_list=os.listdir(state_link)
@@ -508,7 +517,7 @@ def top_trans():
                     column["state"].append(state)
                     column["year"].append(years)
                     column["quarter"].append(int(jsonfile.strip(".json")))
-                    column['entity_name'].append(entity_name)
+                    column['district_name'].append(entity_name)
                     column['count'].append(count)
                     column['amount'].append(amount)
 
@@ -537,9 +546,9 @@ def top_trans():
             row['state'],
             row['year'],
             row['quarter'],
-            row['entity_name'],
-            row['top_count'],
-            row['top_amount']
+            row['district_name'],
+            row['count'],
+            row['amount']
         ))
 
     connection.commit()
@@ -665,6 +674,62 @@ table9=cursor.fetchall()
 top_users_df=pd.DataFrame(table9,columns=("State","Year","Quarter","Pincodes","Registered_Users"))
 connection.commit()
 
+connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+cursor=connection.cursor()
+#agg_ins_df
+cursor.execute("SELECT * FROM aggregated_insurance")
+table1=cursor.fetchall()
+agg_ins_df=pd.DataFrame(table1,columns=("State","Year","Quarter","Transaction_Name","Count","Amount"))
+connection.commit()
+#agg_trans_df
+cursor.execute("SELECT * FROM aggregated_transaction")
+table2=cursor.fetchall()
+agg_trans_df=pd.DataFrame(table2,columns=("State","Year","Quarter","Transaction_Name",
+                                          "Count","Amount"))
+connection.commit()
+#agg_user_df
+cursor.execute("SELECT * FROM aggregated_user")
+table3=cursor.fetchall()
+agg_user_df=pd.DataFrame(table3,columns=("State","Year","Quarter","Brand_Name","Count","Percentage"))
+connection.commit()
+
+
+#map_ins_df
+cursor.execute("SELECT * FROM map_insurance")
+table4=cursor.fetchall()
+map_ins_df=pd.DataFrame(table4,columns=("State","Year","Quarter","District_Name","Count","Amount"))
+connection.commit()
+#map_trans_df
+cursor.execute("SELECT * FROM map_transaction")
+table5=cursor.fetchall()
+map_trans_df=pd.DataFrame(table5,columns=("State","Year","Quarter","District_Name","Count","Amount"))
+connection.commit()
+#map_users_df
+cursor.execute("SELECT * FROM map_users")
+table6=cursor.fetchall()
+map_users_df=pd.DataFrame(table6,columns=("State","Year","Quarter","District_Name","Registered_Users","App_Opens"))
+connection.commit()
+
+#top_ins_df
+cursor.execute("SELECT * FROM top_insurance")
+table7=cursor.fetchall()
+top_ins_df=pd.DataFrame(table7,columns=("State","Year","Quarter","District_Name","Count","Amount"))
+connection.commit()
+#top_trans_df
+cursor.execute("SELECT * FROM top_transaction")
+table8=cursor.fetchall()
+top_trans_df=pd.DataFrame(table8,columns=("State","Year","Quarter","District_Name","Count","Amount"))
+connection.commit()
+#top_users_df
+cursor.execute("SELECT * FROM top_users")
+table9=cursor.fetchall()
+top_users_df=pd.DataFrame(table9,columns=("State","Year","Quarter","Pincodes","Registered_Users"))
+connection.commit()
 
 
 st.set_page_config(page_title="PHONEPE",page_icon=":iphone:",layout="wide")
@@ -699,15 +764,22 @@ def aggregated_insurance(user_year):
         st.plotly_chart(fig_ai)
 
 if selected == "AGGREGATION":
-    option = st.selectbox(
-    'Choose the Aggregation-Data option',
-    ('Insurance', 'Transaction', 'Users'))
-    if option == 'Insurance':
-        op = st.radio(
-            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
-        if op == ":rainbow[BAR CHART]":
-            aggregated_insurance(2020)
-            
-        else:
-            st.write("load")
-    
+    col1,col2=st.columns(2)
+    with col1:
+        option1 = st.selectbox(
+        'Choose the Aggregation-Data option',
+        ('Insurance', 'Transaction', 'Users'))
+        if option1 == 'Insurance':
+            year_list = list(agg_ins_df.Year.unique())[::-1]
+            option2 = st.selectbox("Choose the year",year_list)
+            op = st.radio(
+                "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
+            if op == ":rainbow[BAR CHART]":
+                aggregated_insurance(option2)
+                
+            elif op == ":rainbow[GEOGRAPHICAL VIEW]":
+                st.write("load")
+
+
+        
+        
