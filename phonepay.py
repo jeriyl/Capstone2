@@ -683,3 +683,13 @@ with st.sidebar:
     #color_theme_list = ['Blues', 'Cividis', 'Greens', 'Inferno', 'Magma', 'Plasma', 'Reds', 'Rainbow']
     #selected_color_theme = st.selectbox('Select a color theme', color_theme_list)
 
+selected=option_menu(menu_title="Choose the option for Data Exploration",
+                    options=["AGGREGATION","MAP","TOP"],
+                    icons=["box-seam-fill","globe-asia-australia","geo-alt-fill"],
+                    default_index=0,
+                    orientation="horizontal"
+                    )
+
+
+if selected == "AGGREGATION":
+    
