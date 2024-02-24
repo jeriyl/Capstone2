@@ -763,7 +763,7 @@ def aggregated_insurance(user_year):
     AIgroup.reset_index(inplace=True)
     
     fig_ai=px.bar(AIgroup,x="State",y="Count",title=f"Aggregated-Insurance Count for the year {user_year}",
-                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=500, width=600)
+                color_discrete_sequence=px.colors.sequential.Agsunset,height=500, width=600)
     st.plotly_chart(fig_ai)
 
     fig_ai1=px.bar(AIgroup,x="State",y="Amount",title=f"Aggregated-Insurance Amount for year {user_year}",
@@ -790,9 +790,14 @@ def aggregated_insurance_map(user_year):
                             fitbounds="locations",height=500,width=500)
     fig_india.update_geos(visible = False)
 
-    return fig_india
-    
-        
+    fig_india1=px.choropleth(AIgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Count",color_continuous_scale="Rainbow",
+                            range_color=(AIgroup["Count"].min(),AIgroup["Count"].max()),
+                            hover_name="State",title=f"Aggregated-Insurance Count for the year {user_year}",
+                            fitbounds="locations",height=500,width=500)
+    fig_india1.update_geos(visible = False)
+
+    return fig_india, fig_india1
         
 
 def aggregated_transaction(user_year):
@@ -824,8 +829,9 @@ if selected == "AGGREGATION":
                 aggregated_insurance(option2)
                 
             elif op == ":rainbow[GEOGRAPHICAL VIEW]":
-                fig_india = aggregated_insurance_map(option2)
+                fig_india, fig_india1 = aggregated_insurance_map(option2)
                 st.plotly_chart(fig_india)
+                st.plotly_chart(fig_india1)
                 
 
         elif option1 == 'Transaction':
