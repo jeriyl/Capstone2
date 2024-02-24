@@ -747,9 +747,6 @@ with st.sidebar:
     st.link_button("Install Now",
                    "https://play.google.com/store/apps/details?id=com.phonepe.app&hl=en_IN&gl=US")
 
-    #color_theme_list = ['Blues', 'Cividis', 'Greens', 'Inferno', 'Magma', 'Plasma', 'Reds', 'Rainbow']
-    #selected_color_theme = st.selectbox('Select a color theme', color_theme_list)
-
 selected=option_menu(menu_title="Choose the option for Data Exploration",
                     options=["AGGREGATION","MAP","TOP"],
                     icons=["box-seam-fill","globe-asia-australia","geo-alt-fill"],
@@ -807,7 +804,7 @@ def aggregated_transaction(user_year):
     ATgroup.reset_index(inplace=True)
 
     fig_at=px.bar(ATgroup,x="State",y="Count",title=f"Aggregated-Transaction Count for the year {user_year}",
-                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+                color_discrete_sequence=px.colors.sequential.Agsunset,height=650,width=600)
     st.plotly_chart(fig_at)
     
     fig_at1=px.bar(ATgroup,x="State",y="Amount",title=f"Aggregated-Transaction Amount for the year {user_year}",
