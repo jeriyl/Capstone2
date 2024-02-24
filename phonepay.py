@@ -6,6 +6,8 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import plotly.express as px
 import altair as alt
+import requests
+import json
 
 import os
 import json
@@ -755,17 +757,61 @@ selected=option_menu(menu_title="Choose the option for Data Exploration",
                     orientation="horizontal"
                     )
 def aggregated_insurance(user_year):
-        AI=agg_ins_df[agg_ins_df["Year"]==user_year]
-        AI.reset_index(drop=True,inplace=True)
-        AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
-        AIgroup.reset_index(inplace=True)
-        fig_ai=px.bar(AIgroup,x="State",y="Count",title="Aggregated Insurance-Transaction Count",
-                    color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
-        st.plotly_chart(fig_ai)
+    AI=agg_ins_df[agg_ins_df["Year"]==user_year]
+    AI.reset_index(drop=True,inplace=True)
+    AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
+    AIgroup.reset_index(inplace=True)
+    
+    fig_ai=px.bar(AIgroup,x="State",y="Count",title=f"Aggregated-Insurance Count for the year {user_year}",
+                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=500, width=600)
+    st.plotly_chart(fig_ai)
+
+    fig_ai1=px.bar(AIgroup,x="State",y="Amount",title=f"Aggregated-Insurance Amount for year {user_year}",
+        color_discrete_sequence=px.colors.sequential.Aggrnyl,height=500, width=600)
+    st.plotly_chart(fig_ai1)
+
+def aggregated_insurance_map(user_year):
+    AI=agg_ins_df[agg_ins_df["Year"]==user_year]
+    AI.reset_index(drop=True,inplace=True)
+    AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
+    AIgroup.reset_index(inplace=True)
+    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
+    response=requests.get(url)
+    data=json.loads(response.content)
+    state_names=[]
+    for feauture in data["features"]:
+        state_names.append(feauture["properties"]["ST_NM"])
+    state_names.sort()
+
+    fig_india=px.choropleth(AIgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Amount",color_continuous_scale="Rainbow",
+                            range_color=(AIgroup["Amount"].min(),AIgroup["Amount"].max()),
+                            hover_name="State",title=f"Aggregated-Insurance Amount for the year {user_year}",
+                            fitbounds="locations",height=500,width=500)
+    fig_india.update_geos(visible = False)
+
+    return fig_india
+    
+        
+        
+
+def aggregated_transaction(user_year):
+    AT=agg_trans_df[agg_trans_df["Year"]==user_year]
+    AT.reset_index(drop=True,inplace=True)
+    ATgroup=AT.groupby("State")[["Count","Amount"]].sum()
+    ATgroup.reset_index(inplace=True)
+    fig_at=px.bar(ATgroup,x="State",y="Count",title=f"Aggregated-Transaction Count for the year {user_year}",
+                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+    st.plotly_chart(fig_at)
+    
+    fig_at1=px.bar(ATgroup,x="State",y="Amount",title=f"Aggregated-Transaction Amount for the year {user_year}",
+                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+    st.plotly_chart(fig_at1)
+
 
 if selected == "AGGREGATION":
-    col1,col2=st.columns(2)
-    with col1:
+    col11,col12=st.columns(2)
+    with col11:
         option1 = st.selectbox(
         'Choose the Aggregation-Data option',
         ('Insurance', 'Transaction', 'Users'))
@@ -778,7 +824,26 @@ if selected == "AGGREGATION":
                 aggregated_insurance(option2)
                 
             elif op == ":rainbow[GEOGRAPHICAL VIEW]":
+                fig_india = aggregated_insurance_map(option2)
+                st.plotly_chart(fig_india)
+                
+
+        elif option1 == 'Transaction':
+            year_list = list(agg_trans_df.Year.unique())[::-1]
+            option2 = st.selectbox("Choose the year",year_list)
+            op = st.radio(
+                "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
+            if op == ":rainbow[BAR CHART]":
+                aggregated_transaction(option2)
+                
+            elif op == ":rainbow[GEOGRAPHICAL VIEW]":
                 st.write("load")
+                
+                
+            
+
+    
+
 
 
         
