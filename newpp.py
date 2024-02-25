@@ -5,10 +5,8 @@ import mysql.connector
 import streamlit as st
 from streamlit_option_menu import option_menu
 import plotly.express as px
-import altair as alt
 import requests
 import json
-
 
 def agg_insurance():
     connection = mysql.connector.connect(
@@ -72,7 +70,6 @@ def agg_insurance():
         ))
 
     connection.commit()
-
     return agg_ins_data
 
 def agg_trans():
@@ -137,9 +134,7 @@ def agg_trans():
             row['count'],
             row['amount']
         ))
-
     connection.commit()
-
     return agg_trans_data
 
 def agg_user():
@@ -207,11 +202,8 @@ def agg_user():
             row['count'],
             row['percentage']
         ))
-
     connection.commit()
-
     return user_data    
-
 
 def map_insurance():
     connection = mysql.connector.connect(
@@ -275,9 +267,7 @@ def map_insurance():
             row['count'],
             row['amount']
         ))
-
     connection.commit()
-
     return map_ins_data
 
 def map_trans():
@@ -411,7 +401,6 @@ def map_users():
         ))
 
     connection.commit()
-
     return map_users_data
 
 def top_insurance():
@@ -476,7 +465,6 @@ def top_insurance():
             row['count'],
             row['amount']
         ))
-
     connection.commit()
     return top_ins_data
 
@@ -544,7 +532,6 @@ def top_trans():
             row['count'],
             row['amount']
         ))
-
     connection.commit()
     return top_trans_data
 
@@ -607,8 +594,7 @@ def top_users():
             row['registered_users']
             
         ))
-    connection.commit()
-    
+    connection.commit()   
     return top_users_data
     
 connection = mysql.connector.connect(
@@ -673,64 +659,92 @@ def aggregated_insurance(user_year):
     AI.reset_index(drop=True,inplace=True)
     AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
     AIgroup.reset_index(inplace=True)
-    
+    fig_ai1=px.bar(AIgroup,x="State",y="Amount",title=f"Aggregated-Insurance Amount for the year {user_year}",
+                color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+    st.plotly_chart(fig_ai1)
     fig_ai=px.bar(AIgroup,x="State",y="Count",title=f"Aggregated-Insurance Count for the year {user_year}",
-                color_discrete_sequence=px.colors.sequential.Agsunset,height=500, width=600)
+                color_discrete_sequence=px.colors.sequential.Agsunset,height=650,width=600)
     st.plotly_chart(fig_ai)
 
-    fig_ai1=px.bar(AIgroup,x="State",y="Amount",title=f"Aggregated-Insurance Amount for year {user_year}",
-        color_discrete_sequence=px.colors.sequential.Aggrnyl,height=500, width=600)
-    st.plotly_chart(fig_ai1)
+def aggregated_insurance_by_year():
+    AI_grouped = agg_ins_df.groupby("Year")[["Count", "Amount"]].sum()
+    AI_grouped.reset_index(inplace=True)
+    fig_year_amount = px.bar(AI_grouped, x="Year", y="Amount",
+                             title="Aggregated-Insurance Amount by Year",
+                             color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                             height=650, width=600)
+    st.plotly_chart(fig_year_amount)
+    fig_year_count = px.bar(AI_grouped, x="Year", y="Count",
+                            title="Aggregated-Insurance Count by Year",
+                            color_discrete_sequence=px.colors.sequential.Agsunset,
+                            height=650, width=600)
+    st.plotly_chart(fig_year_count)
 
-def aggregated_insurance_map(user_year):
-    AI=agg_ins_df[agg_ins_df["Year"]==user_year]
-    AI.reset_index(drop=True,inplace=True)
-    AIgroup=AI.groupby("State")[["Count","Amount"]].sum()
-    AIgroup.reset_index(inplace=True)
-    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
-    response=requests.get(url)
-    data=json.loads(response.content)
-    state_names=[]
-    for feauture in data["features"]:
-        state_names.append(feauture["properties"]["ST_NM"])
-    state_names.sort()
-
-    fig_india=px.choropleth(AIgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Amount",color_continuous_scale="Rainbow",
-                            range_color=(AIgroup["Amount"].min(),AIgroup["Amount"].max()),
-                            hover_name="State",title=f"Aggregated-Insurance Amount for the year {user_year}",
-                            fitbounds="locations",height=500,width=500)
-    fig_india.update_geos(visible = False)
-
-    fig_india1=px.choropleth(AIgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Count",color_continuous_scale="Rainbow",
-                            range_color=(AIgroup["Count"].min(),AIgroup["Count"].max()),
-                            hover_name="State",title=f"Aggregated-Insurance Count for the year {user_year}",
-                            fitbounds="locations",height=500,width=500)
-    fig_india1.update_geos(visible = False)
-
-    return fig_india, fig_india1
-        
-
+def aggregated_insurance_by_quarter():
+    AI_grouped_quarter = agg_ins_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+    AI_grouped_quarter.reset_index(inplace=True)
+    fig_quarter_amount = px.bar(AI_grouped_quarter, x="Quarter", y="Amount", color="Year",
+                                title="Aggregated Insurance Amount by Quarter",
+                                color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                                height=650, width=800,barmode='stack')
+    fig_quarter_amount.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_amount)
+    fig_quarter_count = px.bar(AI_grouped_quarter, x="Quarter", y="Count", color="Year",
+                            title="Aggregated Insurance Count by Quarter",
+                            color_discrete_sequence=px.colors.sequential.Agsunset,
+                            height=650, width=800,barmode='stack')
+    fig_quarter_count.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_count)
+  
 def aggregated_transaction(user_year):
     AT=agg_trans_df[agg_trans_df["Year"]==user_year]
     AT.reset_index(drop=True,inplace=True)
     ATgroup=AT.groupby("State")[["Count","Amount"]].sum()
     ATgroup.reset_index(inplace=True)
-
-    fig_at=px.bar(ATgroup,x="State",y="Count",title=f"Aggregated-Transaction Count for the year {user_year}",
-                color_discrete_sequence=px.colors.sequential.Agsunset,height=650,width=600)
-    st.plotly_chart(fig_at)
-    
     fig_at1=px.bar(ATgroup,x="State",y="Amount",title=f"Aggregated-Transaction Amount for the year {user_year}",
                 color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
     st.plotly_chart(fig_at1)
+    fig_at=px.bar(ATgroup,x="State",y="Count",title=f"Aggregated-Transaction Count for the year {user_year}",
+                color_discrete_sequence=px.colors.sequential.Agsunset,height=650,width=600)
+    st.plotly_chart(fig_at)
 
-def aggregated_transaction_map(user_year):
-    AT=agg_trans_df[agg_trans_df["Year"]==user_year]
-    AT.reset_index(drop=True,inplace=True)
-    ATgroup=AT.groupby("State")[["Count","Amount"]].sum()
-    ATgroup.reset_index(inplace=True)
+def aggregated_transaction_by_year():
+    AT_grouped = agg_trans_df.groupby("Year")[["Count", "Amount"]].sum()
+    AT_grouped.reset_index(inplace=True)
+    fig_year_amount = px.bar(AT_grouped, x="Year", y="Amount",
+                             title="Aggregated Transaction Amount by Year",
+                             color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                             height=650, width=800)
+    
+    st.plotly_chart(fig_year_amount)
+    fig_year_count = px.bar(AT_grouped, x="Year", y="Count",
+                            title="Aggregated Transaction Count by Year",
+                            color_discrete_sequence=px.colors.sequential.Agsunset,
+                            height=650, width=800)
+    
+    st.plotly_chart(fig_year_count)
+
+def aggregated_transaction_by_quarter():
+    AT_grouped_quarter = agg_trans_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+    AT_grouped_quarter.reset_index(inplace=True)
+    fig_quarter_amount = px.bar(AT_grouped_quarter, x="Quarter", y="Amount", color="Year",
+                                title="Aggregated Transaction Amount by Quarter",
+                                color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                                height=650, width=800,barmode='stack')
+    fig_quarter_amount.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_amount)
+    fig_quarter_count = px.bar(AT_grouped_quarter, x="Quarter", y="Count", color="Year",
+                            title="Aggregated Transaction Count by Quarter",
+                            color_discrete_sequence=px.colors.sequential.Agsunset,
+                            height=650, width=800,barmode='stack')
+    fig_quarter_count.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_count)
+    
+def map_transaction(user_year):
+    MT=map_trans_df[agg_trans_df["Year"]==user_year]
+    MT.reset_index(drop=True,inplace=True)
+    MTgroup=AT.groupby("State")[["Count","Amount"]].sum()
+    MTgroup.reset_index(inplace=True)
 
     url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
     response=requests.get(url)
@@ -740,27 +754,26 @@ def aggregated_transaction_map(user_year):
         state_names.append(feauture["properties"]["ST_NM"])
     state_names.sort()
 
-    fig_india=px.choropleth(ATgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+    fig_india=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
                             color="Amount",color_continuous_scale="Rainbow",
-                            range_color=(ATgroup["Amount"].min(),ATgroup["Amount"].max()),
+                            range_color=(MTgroup["Amount"].min(),MTgroup["Amount"].max()),
                             hover_name="State",title=f"Aggregated-Insurance Amount for the year {user_year}",
                             fitbounds="locations",height=500,width=500)
     fig_india.update_geos(visible = False)
 
-    fig_india1=px.choropleth(ATgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+    fig_india1=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
                             color="Count",color_continuous_scale="Rainbow",
-                            range_color=(ATgroup["Count"].min(),ATgroup["Count"].max()),
+                            range_color=(MTgroup["Count"].min(),MTgroup["Count"].max()),
                             hover_name="State",title=f"Aggregated-Insurance Count for the year {user_year}",
                             fitbounds="locations",height=500,width=500)
     fig_india1.update_geos(visible = False)
 
     return fig_india, fig_india1
-        
+
+                                ############# STREAMLIT ##################
+
 st.set_page_config(page_title="PHONEPE",page_icon=":iphone:",layout="wide")
 st.header(':violet[PHONEPE PULSE DATA VISUALIZATION AND EXPLORATION]')
-alt.themes.enable("dark")
-#st.set_page_config(page_icon=)
-
 with st.sidebar:
     st.title("India Phonepe Dashboard")
     video_file = open('Phonepe.mp4', 'rb')
@@ -770,57 +783,63 @@ with st.sidebar:
                    "https://play.google.com/store/apps/details?id=com.phonepe.app&hl=en_IN&gl=US")
 
 selected=option_menu(menu_title="Choose the option for Data Exploration",
-                    options=["AGGREGATION","MAP","TOP"],
-                    icons=["box-seam-fill","globe-asia-australia","geo-alt-fill"],
+                    options=["AGGREGATION","MAP","TOP","DATA ANALYSIS"],
+                    icons=["box-seam-fill","globe-asia-australia","geo-alt-fill","search"],
                     default_index=0,
                     orientation="horizontal"
                     )
 
 if selected == "AGGREGATION":
-    option1 = st.selectbox(
-    'Choose the Aggregation-Data option',
-    ('Insurance', 'Transaction', 'Users'))
-    if option1 == 'Insurance':
+    x=st.radio("Choose the Option",["Insurance","Transaction","Users"])
+    if x == "Insurance":
+        selected=option_menu(menu_title="Total Insurance",options=["States","Year","Quarter"],default_index=0,
+                            orientation="horizontal")
+        
+        if selected == "States":
+            year_list = list(agg_ins_df.Year.unique())[::-1]
+            option1 = st.selectbox("Choose the year",year_list)
+            aggregated_insurance(option1)
+
+        elif selected == "Year":
+            aggregated_insurance_by_year()
+
+        elif selected == "Quarter":
+            aggregated_insurance_by_quarter()
+
+
+    if x == "Transaction":
+        selected1=option_menu(menu_title="Total Transaction",options=["States","Year","Quarter"],default_index=0,
+                            orientation="horizontal")
+        
+        if selected1 == "States":
+            year_list = list(agg_trans_df.Year.unique())[::-1]
+            option2 = st.selectbox("Choose the year",year_list)
+            aggregated_transaction(option2)
+
+        elif selected1 == "Year":
+            aggregated_transaction_by_year()
+
+        elif selected1 == "Quarter":
+            aggregated_transaction_by_quarter()
+    
+    if x == "Users":
+        st.write("Loading")
+
+elif selected == "MAP":
+    y=st.radio("Choose the Option",["Insurance","Transaction","Users"])
+    if y == "Insurance":
         year_list = list(agg_ins_df.Year.unique())[::-1]
         option2 = st.selectbox("Choose the year",year_list)
-        op = st.radio(
-            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
-        col1,col2=st.columns(2)
-        
-        if op == ":rainbow[BAR CHART]":
-            aggregated_insurance(option2)
-           
-        elif op == ":rainbow[GEOGRAPHICAL VIEW]":
-            fig_india, fig_india1 = aggregated_insurance_map(option2)
-            with col1:
-                st.plotly_chart(fig_india)
-            with col2:
-                st.plotly_chart(fig_india1)
-            
+        map_transaction(option2)
 
-    elif option1 == 'Transaction':
-        year_list = list(agg_trans_df.Year.unique())[::-1]
-        option2 = st.selectbox("Choose the year",year_list)
-        op = st.radio(
-            "Choose the option to visualise",[":rainbow[BAR CHART]",":rainbow[GEOGRAPHICAL VIEW]"])
-        col3,col4=st.columns(2)
-        if op == ":rainbow[BAR CHART]":
-            aggregated_transaction(option2)
-            
-        elif op == ":rainbow[GEOGRAPHICAL VIEW]":
-            fig_india, fig_india1 = aggregated_transaction_map(option2)
-            with col3:
-                st.plotly_chart(fig_india)
-            with col4:
-                st.plotly_chart(fig_india1)
                 
-                
-                
-            
+
+
+
+
 
     
 
 
 
-        
-        
+
