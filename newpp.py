@@ -669,16 +669,19 @@ def aggregated_insurance(user_year):
 def aggregated_insurance_by_year():
     AI_grouped = agg_ins_df.groupby("Year")[["Count", "Amount"]].sum()
     AI_grouped.reset_index(inplace=True)
-    fig_year_amount = px.bar(AI_grouped, x="Year", y="Amount",
-                             title="Aggregated-Insurance Amount by Year",
-                             color_discrete_sequence=px.colors.sequential.Aggrnyl,
-                             height=650, width=600)
-    st.plotly_chart(fig_year_amount)
-    fig_year_count = px.bar(AI_grouped, x="Year", y="Count",
-                            title="Aggregated-Insurance Count by Year",
-                            color_discrete_sequence=px.colors.sequential.Agsunset,
-                            height=650, width=600)
-    st.plotly_chart(fig_year_count)
+    col1,col2=st.columns(2)
+    with col1:
+        fig_year_amount = px.bar(AI_grouped, x="Year", y="Amount",
+                                title="Aggregated-Insurance Amount by Year",
+                                color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                                height=450, width=350)
+        st.plotly_chart(fig_year_amount)
+    with col2:
+        fig_year_count = px.bar(AI_grouped, x="Year", y="Count",
+                                title="Aggregated-Insurance Count by Year",
+                                color_discrete_sequence=px.colors.sequential.Agsunset,
+                                height=450, width=350)
+        st.plotly_chart(fig_year_count)
 
 def aggregated_insurance_by_quarter():
     AI_grouped_quarter = agg_ins_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
@@ -686,13 +689,13 @@ def aggregated_insurance_by_quarter():
     fig_quarter_amount = px.bar(AI_grouped_quarter, x="Quarter", y="Amount", color="Year",
                                 title="Aggregated Insurance Amount by Quarter",
                                 color_discrete_sequence=px.colors.sequential.Aggrnyl,
-                                height=650, width=800,barmode='stack')
+                                height=650, width=600,barmode='stack')
     fig_quarter_amount.update_xaxes(tickmode='linear', dtick=1)
     st.plotly_chart(fig_quarter_amount)
     fig_quarter_count = px.bar(AI_grouped_quarter, x="Quarter", y="Count", color="Year",
                             title="Aggregated Insurance Count by Quarter",
                             color_discrete_sequence=px.colors.sequential.Agsunset,
-                            height=650, width=800,barmode='stack')
+                            height=650, width=600,barmode='stack')
     fig_quarter_count.update_xaxes(tickmode='linear', dtick=1)
     st.plotly_chart(fig_quarter_count)
   
@@ -711,18 +714,21 @@ def aggregated_transaction(user_year):
 def aggregated_transaction_by_year():
     AT_grouped = agg_trans_df.groupby("Year")[["Count", "Amount"]].sum()
     AT_grouped.reset_index(inplace=True)
-    fig_year_amount = px.bar(AT_grouped, x="Year", y="Amount",
-                             title="Aggregated Transaction Amount by Year",
-                             color_discrete_sequence=px.colors.sequential.Aggrnyl,
-                             height=650, width=800)
-    
-    st.plotly_chart(fig_year_amount)
-    fig_year_count = px.bar(AT_grouped, x="Year", y="Count",
-                            title="Aggregated Transaction Count by Year",
-                            color_discrete_sequence=px.colors.sequential.Agsunset,
-                            height=650, width=800)
-    
-    st.plotly_chart(fig_year_count)
+    col3,col4=st.columns(2)
+    with col3:
+        fig_year_amount = px.bar(AT_grouped, x="Year", y="Amount",
+                                title="Aggregated Transaction Amount by Year",
+                                color_discrete_sequence=px.colors.sequential.Aggrnyl,
+                                height=450, width=350)
+        
+        st.plotly_chart(fig_year_amount)
+    with col4:
+        fig_year_count = px.bar(AT_grouped, x="Year", y="Count",
+                                title="Aggregated Transaction Count by Year",
+                                color_discrete_sequence=px.colors.sequential.Agsunset,
+                                height=450, width=350)
+        
+        st.plotly_chart(fig_year_count)
 
 def aggregated_transaction_by_quarter():
     AT_grouped_quarter = agg_trans_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
@@ -793,34 +799,33 @@ selected=option_menu(menu_title="Choose the option for Data Exploration",
 if selected == "AGGREGATION":
     x=st.radio("Choose the Option",["Insurance","Transaction","Users"])
     if x == "Insurance":
-        selected=option_menu(menu_title="Total Insurance",options=["States","Year","Quarter"],default_index=0,
-                            orientation="horizontal")
-        
-        if selected == "States":
+        tab_titles=["States","Year","Quarter"]
+        tabs=st.tabs(tab_titles)
+        with tabs[0]:
             year_list = list(agg_ins_df.Year.unique())[::-1]
             option1 = st.selectbox("Choose the year",year_list)
             aggregated_insurance(option1)
 
-        elif selected == "Year":
+        with tabs[1]:
             aggregated_insurance_by_year()
 
-        elif selected == "Quarter":
+        with tabs[2]:
             aggregated_insurance_by_quarter()
 
 
     if x == "Transaction":
-        selected1=option_menu(menu_title="Total Transaction",options=["States","Year","Quarter"],default_index=0,
-                            orientation="horizontal")
+        tab_titles1=["States","Year","Quarter"]
+        tabs1=st.tabs(tab_titles1)
         
-        if selected1 == "States":
+        with tabs1[0]:
             year_list = list(agg_trans_df.Year.unique())[::-1]
             option2 = st.selectbox("Choose the year",year_list)
             aggregated_transaction(option2)
 
-        elif selected1 == "Year":
+        with tabs1[1]:
             aggregated_transaction_by_year()
 
-        elif selected1 == "Quarter":
+        with tabs1[2]:
             aggregated_transaction_by_quarter()
     
     if x == "Users":
