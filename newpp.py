@@ -741,9 +741,9 @@ def aggregated_transaction_by_quarter():
     st.plotly_chart(fig_quarter_count)
     
 def map_transaction(user_year):
-    MT=map_trans_df[agg_trans_df["Year"]==user_year]
+    MT=map_trans_df[map_trans_df["Year"]==user_year]
     MT.reset_index(drop=True,inplace=True)
-    MTgroup=AT.groupby("State")[["Count","Amount"]].sum()
+    MTgroup=MT.groupby("State")[["Count","Amount"]].sum()
     MTgroup.reset_index(inplace=True)
 
     url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
@@ -752,22 +752,23 @@ def map_transaction(user_year):
     state_names=[]
     for feauture in data["features"]:
         state_names.append(feauture["properties"]["ST_NM"])
-    state_names.sort()
+        state_names.sort()
 
     fig_india=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
                             color="Amount",color_continuous_scale="Rainbow",
                             range_color=(MTgroup["Amount"].min(),MTgroup["Amount"].max()),
-                            hover_name="State",title=f"Aggregated-Insurance Amount for the year {user_year}",
-                            fitbounds="locations",height=500,width=500)
+                            hover_name="State",title=f"Insurance Amount for the year {user_year}",
+                            fitbounds="locations",height=900,width=900)
     fig_india.update_geos(visible = False)
+    fig_india.update_traces(hovertemplate='<b>%{hovertext}</b><br>Amount: %{z}')
 
     fig_india1=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
                             color="Count",color_continuous_scale="Rainbow",
                             range_color=(MTgroup["Count"].min(),MTgroup["Count"].max()),
-                            hover_name="State",title=f"Aggregated-Insurance Count for the year {user_year}",
-                            fitbounds="locations",height=500,width=500)
+                            hover_name="State",title=f"Insurance Count for the year {user_year}",
+                            fitbounds="locations",height=900,width=900)
     fig_india1.update_geos(visible = False)
-
+    
     return fig_india, fig_india1
 
                                 ############# STREAMLIT ##################
@@ -828,9 +829,14 @@ if selected == "AGGREGATION":
 elif selected == "MAP":
     y=st.radio("Choose the Option",["Insurance","Transaction","Users"])
     if y == "Insurance":
-        year_list = list(agg_ins_df.Year.unique())[::-1]
+        year_list = list(map_ins_df.Year.unique())[::-1]
         option2 = st.selectbox("Choose the year",year_list)
-        map_transaction(option2)
+        fig_india, fig_india1 = map_transaction(option2)
+        
+        # Display the choropleth maps
+        st.plotly_chart(fig_india)
+        st.plotly_chart(fig_india1)
+        
 
                 
 
