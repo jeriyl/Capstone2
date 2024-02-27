@@ -665,6 +665,8 @@ def total_trans():
     total_count_in_c=np.round(res_in_float / 10_000_000,2)
     #st.header('Transactions')
     st.subheader('All Phonepe Transaction ' + str(total_count_in_c) + ' Crores') 
+
+
 def total_payment_value():
     sql_query="SELECT SUM(Transaction_Amount) as total_amount from Aggregated_transaction"
     cursor.execute(sql_query)
@@ -732,7 +734,81 @@ def top_ten_pcode():
     df['Postal Codes'] = df['Postal Codes'].astype(str).str.replace(',', '')
     df.index = df.index + 1
     st.write(df)
-    
+
+def aggregated_transaction_by_quarter_A(user_year):
+    filtered_df = agg_trans_df[agg_trans_df["Year"] == user_year]
+    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+    AT_grouped_quarter.reset_index(inplace=True)
+    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
+    custom_colors = [ '#f01616', '#ecf016', '#02fa34', '#02f6fa']
+    fig_quarter_amount = px.bar(AT_grouped_quarter, x="Quarter", y="Amount", 
+                                title=f"Aggregated Transaction Amount by Quarter for {user_year}",
+                                color=custom_colors,
+                                height=450, width=600, barmode='stack')
+    fig_quarter_amount.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_amount)
+def aggregated_transaction_by_quarter_C(user_year):
+    filtered_df = agg_trans_df[agg_trans_df["Year"] == user_year]
+    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+    AT_grouped_quarter.reset_index(inplace=True)
+    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
+    custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+                 
+    fig_quarter_count = px.bar(AT_grouped_quarter, x="Quarter", y="Count", color=custom_colors,
+                                title=f"Aggregated Transaction Count by Quarter for {user_year}",
+                                height=450, width=600, barmode='stack')
+    fig_quarter_count.update_xaxes(tickmode='linear', dtick=1)
+    st.plotly_chart(fig_quarter_count)
+import locale
+def ins_count():
+    sql_query="select sum(Count) as total_count from aggregated_insurance"
+    cursor.execute(sql_query)
+    res=cursor.fetchone()
+    res_in_value=res[0]
+    locale.setlocale(locale.LC_NUMERIC, 'en_IN')  # Set the locale to Indian English
+    formatted_count = locale.format_string("%d", res_in_value, grouping=True)
+    st.header("ALL INDIA")
+    st.header("Insurance Policies Purchased(No's): " + formatted_count )
+def ins_amount():
+    sql_query="select sum(Amount) as total_amt from aggregated_insurance"
+    cursor.execute(sql_query)
+    res=cursor.fetchone()
+    res_in_value=res[0]
+    total_amt_in_crore = res_in_value / 10000000  # 1 crore = 10,000,000
+    formatted_total_amt = '{:,.2f}'.format(total_amt_in_crore) + 'cr'
+    st.header("Total Premium Value: " + formatted_total_amt)
+def avg_amount():
+    sql_query="select Avg(Amount) as total_amt from aggregated_insurance"
+    cursor.execute(sql_query)
+    res=cursor.fetchone()
+    res_in_value=res[0]
+    total_amt_in_crore = res_in_value / 10000000  # 1 crore = 10,000,000
+    formatted_total_amt = '{:,.2f}'.format(total_amt_in_crore) + 'cr'
+    st.header("Average Premium Value: " + formatted_total_amt)
+
+def aggregated_transaction_by_year_amountA():
+    AT_grouped = agg_ins_df.groupby("Year")[["Count", "Amount"]].sum()
+    AT_grouped.reset_index(inplace=True)
+    fig_year_amount = px.bar(AT_grouped, x="Year", y="Amount",
+                            title="Total Premium Value",
+                            height=550,width=450)
+    fig_year_amount.update_xaxes(
+        tickvals=list(AT_grouped["Year"].unique()),  
+        ticktext=list(map(str, AT_grouped["Year"].unique()))  
+    )
+    st.plotly_chart(fig_year_amount)
+def aggregated_transaction_by_year_amountC():
+    AT_grouped = agg_ins_df.groupby("Year")[["Count", "Amount"]].sum()
+    AT_grouped.reset_index(inplace=True)
+    fig_year_count = px.bar(AT_grouped, x="Year", y="Count",
+                            title="Total Insurance Policies",
+                            height=550,width=450
+                            )
+    fig_year_count.update_xaxes(
+        tickvals=list(AT_grouped["Year"].unique()),  # Set tick values as unique years
+        ticktext=list(map(str, AT_grouped["Year"].unique()))
+    )
+    st.plotly_chart(fig_year_count)
 
 st.set_page_config(page_title="PHONEPE",page_icon=":iphone:",layout="wide")
 selected=option_menu(menu_title="PHONEPE PULSE DATA VISUALIZATION AND EXPLORATION",
@@ -785,8 +861,40 @@ if selected == "Dash Board":
         if st.button("Top 10 Postal Codes"):
             top_ten_pcode()
 
-if selected == "Insurance":
+elif selected == "Insurance":
+    with st.sidebar:
+        ins_count()
+        ins_amount()
+        avg_amount()
+    ins1,ins2=st.columns(2)
+    st.subheader("Total Insurance-Transaction")
+    if st.button("Total Insurance from Year 2020 to 2023"):
+        with ins1:
+            aggregated_transaction_by_year_amountC()
+        with ins2:
+            aggregated_transaction_by_year_amountA()
+
+elif selected == "Transactions":
+    col11,col12=st.columns(2)
+    with col11:
+        year_list = list(agg_trans_df.Year.unique())[::-1]
+        year = st.selectbox("Choose the year",year_list)
+    #quarter_list = list(agg_trans_df.Quarter.unique())[::-1]
+    #quarter=st.selectbox("Choose the quarter",quarter_list)
+    col9,col10=st.columns(2)
+    with col9:
+        aggregated_transaction_by_quarter_A(year)
+    with col10:
+        aggregated_transaction_by_quarter_C(year)
     
+        
+
+    
+        
+
+
+
+
 
 
 

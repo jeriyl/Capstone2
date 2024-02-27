@@ -760,6 +760,8 @@ if selected == "Dash Board":
         total_amount_crores = np.round(total_amount_float / 10_000_000,2)
         st.subheader('Total Payment Value: ' + str(total_amount_crores) + ' Crores') 
 
+    aggregated_insurance_by_quarter_amount()
+
           
 
       

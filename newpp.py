@@ -746,8 +746,8 @@ def aggregated_transaction_by_quarter():
     fig_quarter_count.update_xaxes(tickmode='linear', dtick=1)
     st.plotly_chart(fig_quarter_count)
     
-def map_transaction(user_year):
-    MT=map_trans_df[map_trans_df["Year"]==user_year]
+def agg_transaction(user_year):
+    MT=agg_trans_df[agg_trans_df["Year"]==user_year]
     MT.reset_index(drop=True,inplace=True)
     MTgroup=MT.groupby("State")[["Count","Amount"]].sum()
     MTgroup.reset_index(inplace=True)
@@ -836,7 +836,7 @@ elif selected == "MAP":
     if y == "Insurance":
         year_list = list(map_ins_df.Year.unique())[::-1]
         option2 = st.selectbox("Choose the year",year_list)
-        fig_india, fig_india1 = map_transaction(option2)
+        fig_india, fig_india1 = agg_transaction(option2)
         
         # Display the choropleth maps
         st.plotly_chart(fig_india)
