@@ -666,8 +666,9 @@ def total_trans():
     res_in_value=res[0]
     res_in_float=float(res_in_value)
     total_count_in_c=np.round(res_in_float / 10_000_000,2)
-    #st.header('Transactions')
-    st.subheader('All Phonepe Transaction ' + str(total_count_in_c) + ' Crores')
+    st.markdown('<h1 style="color: Green; font-size: 20pt; font-weight: bold;">All Phonepe Transactions:</h1>', 
+                unsafe_allow_html=True)
+    st.subheader(str(total_count_in_c) + ' Crores')
 
 #DASHBORD-TOTAL PAYMENT(AMOUNT)
 def total_payment_value():
@@ -677,7 +678,9 @@ def total_payment_value():
     res_in_value=res[0]
     res_in_float=float(res_in_value)
     total_amount_in_c=np.round(res_in_float / 10_000_000,2)
-    st.subheader('Total Payment Value ' + str(total_amount_in_c) + ' Crores')
+    st.markdown('<h1 style="color: green; font-size: 20pt; font-weight: bold;">Total Payment Value:</h1>', 
+                unsafe_allow_html=True)
+    st.subheader(str(total_amount_in_c) + ' Crores')
 
 #DASHBORD-AVERAGE PAYMENT(AMOUNT)
 def avg_trans_value():
@@ -687,7 +690,9 @@ def avg_trans_value():
     res_in_value=res[0]
     res_in_float=float(res_in_value)
     total_amount_in_c=np.round(res_in_float / 10_000_000,2)
-    st.subheader('Average Transaction Value: ' + str(total_amount_in_c) + ' Crores')
+    st.markdown('<h1 style="color: green; font-size: 20pt; font-weight: bold;">Average Transaction Value</h1>',
+                 unsafe_allow_html=True)
+    st.subheader(str(total_amount_in_c) + ' Crores')
 
 #DASHBORD-CATEGORIES VALUES
 def categories():
@@ -1205,12 +1210,14 @@ if selected == "Dash Board":
     st.markdown("_____")
     col4,col5=st.columns([7,10])
     with col4:
-        st.write("")
+        st.image("https://cdn.zeebiz.com/sites/default/files/styles/zeebiz_850x478/public/2023/02/07/225973-phonepe-upi.png?itok=XRUCFnK4")
     with col5:
-        st.header("Categories")
+        st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">Categories: </h1>',
+                     unsafe_allow_html=True)
         categories()
     st.markdown("____")
-    st.header("BASED ON TRANSACTION AMOUNT")
+    st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">BASED ON TRANSACTION AMOUNT</h1>',
+                 unsafe_allow_html=True)
     col6, col7, col8 = st.columns((5, 5, 5),gap='medium')
     
     with col6:
@@ -1223,9 +1230,12 @@ if selected == "Dash Board":
 if selected == "Transactions":
     col0,col01=st.columns(2)
     with col0:
-        op1=st.selectbox("Choose Type",("Choose One","Transaction Type","Year Wise Data","Quarter Wise Data",
-                                    "State Wise"))
-    if op1 == "Transaction Type":
+        st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
+        op1 = st.radio(
+        "Choose Type",
+        [":rainbow[Transaction Type]",":rainbow[Year Wise Data]",":rainbow[Quarter Wise Data]",
+         ":rainbow[State Wise]"])
+    if op1 == ":rainbow[Transaction Type]":
         col111,col112=st.columns(2)
         with col111:
             user_year1 = st.slider('Choose the Year',min_value=2018,max_value=2023)
@@ -1254,7 +1264,7 @@ if selected == "Transactions":
                             title="Transaction made on Various Categories", width=600, height=600)
             st.plotly_chart(fig_count, use_container_width=True)
 
-    elif op1=="Quarter Wise Data":
+    elif op1==":rainbow[Quarter Wise Data]":
         col31,col32=st.columns(2)
         col3,col4=st.columns(2)
         with col31:
@@ -1263,14 +1273,14 @@ if selected == "Transactions":
             aggregated_transaction_by_quarter_A(user_year)
         with col4:
             aggregated_transaction_by_quarter_C(user_year)
-    elif op1 == "Year Wise Data":
+    elif op1 == ":rainbow[Year Wise Data]":
         col5,col6=st.columns(2)
         with col5:
             aggregated_transaction_by_year_amountC()
         with col6:
             aggregated_transaction_by_year_amountA()
 
-    elif op1 == "State Wise":
+    elif op1 == ":rainbow[State Wise]":
         col71,col81=st.columns(2)
         with col71:
             user_year = st.slider("**Year**", min_value=2018, max_value=2022)
@@ -1282,9 +1292,11 @@ if selected == "Transactions":
             st.plotly_chart(fig_india1)
 
 if selected == "Insurance":
+    st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
     genre = st.radio(
     "Choose Type",
-    [":rainbow[State Wise]",":rainbow[Year Wise]",":rainbow[Quarter Wise]" ])
+    [":rainbow[State Wise]",":rainbow[Year Wise]",":rainbow[Quarter Wise]"])
+
     if genre == ':rainbow[State Wise]':
         col91,col92=st.columns(2)
         with col91:
@@ -1315,9 +1327,12 @@ if selected == "Insurance":
             ins_quarter_A(user_year1)
 
 if selected == "Users":
+    st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
+
     option = st.radio(
     "Choose Type",
     [":rainbow[Brand Wise]",":rainbow[District Wise]",":rainbow[Quarter and Year Wise]"])
+    
     if option == ":rainbow[Brand Wise]":
         col1,col2=st.columns(2)
         with col1:
@@ -1553,6 +1568,10 @@ if selected == "Data Analysis":
         fig1 = px.bar(df, x='State', y='Avg_Amount', title='State vs Average Amount of Insurance',color='Avg_Amount')
         with col1:
             st.plotly_chart(fig1)
+    
+    x=st.button("Done")
+    if x:
+        st.snow()
                 
 
 
