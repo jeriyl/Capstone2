@@ -1403,16 +1403,17 @@ if selected == "Users":
 if selected == "Data Analysis":
     st.header("Data Analysis")
     question = st.selectbox("Choose the question to get the result.", ("Choose one Question",
-        "1. What are the names of all the videos and their corresponding channels?",
-        "2. Which channels have the most number of videos, and how many videos do they have?",
-        "3. What are the top 10 most viewed videos and their respective channels?",
-        "4. How many comments were made on each video, and what are their corresponding video names?",
-        "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
-        "6. What is the total number of likes for each video, and what are their corresponding video names?",
-        "7. What is the total number of views for each channel, and what are their corresponding channel names?",
-        "8. What are the names of all the channels that have published videos in the year 2022?",
-        "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
-        "10. Which videos have the highest number of comments, and what are their corresponding channel names?"
+        "1. Top 10 States in Terms of Insurance Penetration",
+        "2. Transaction Types with the Highest Amount Spent",
+        "3. Trend Analysis of Yearly Phonepe Transaction",
+        "4. Which year had a higher total number of insurance cases in the Tamil Nadu",
+        "5. Which category of transactions had the lowest volume in Andaman and Nicobar Islands in January 2018",
+        '''6.Can you identify any notable trends or patterns in transaction volumes across different categories in 
+            Andaman and Nicobar Islands in January 2018''',
+        "7. What were the top three smartphone brands used phonepay in the year 2022?",
+        "8. What are the top 10 postal codes used Phonepay for transaction?",
+        "9. What is the average transaction amount of iOS and Android users?",
+        "10. Which state has the highest growth in insurance, transactions and what percentage?"
     ))
 
 
