@@ -1030,6 +1030,27 @@ def aggregated_insurance_by_year_Amount():
     )
     st.plotly_chart(fig_year_quarter_count)
 
+def ins_quarter_C(user_year):
+    filtered_df = agg_ins_df[agg_ins_df["Year"] == user_year]
+    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+    AT_grouped_quarter.reset_index(inplace=True)
+    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
+    
+    custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    
+    # Create a pie chart
+    fig_quarter_amount = px.pie(AT_grouped_quarter, values='Count', names='Quarter', 
+                                 title=f"Total Insurance Policies Purchased in Quarter for {user_year}",
+                                 color_discrete_sequence=custom_colors,hole=0.4)
+    
+    fig_quarter_amount.update_traces(textposition='inside', textinfo='percent+label')
+    
+    fig_quarter_amount.update_layout(
+        height=450,
+        width=600
+    )    
+    st.plotly_chart(fig_quarter_amount)
+
 def ins_quarter_A(user_year):
     filtered_df = agg_ins_df[agg_ins_df["Year"] == user_year]
     AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
@@ -1051,18 +1072,19 @@ def ins_quarter_A(user_year):
     )    
     st.plotly_chart(fig_quarter_amount)
 
-def ins_quarter_C(user_year):
-    filtered_df = agg_ins_df[agg_ins_df["Year"] == user_year]
-    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
+def user_quarter_A(user_year):
+    filtered_df = agg_user_df[agg_user_df["Year"] == user_year]
+    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count"]].sum()
     AT_grouped_quarter.reset_index(inplace=True)
     AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
     
-    custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    custom_colors = ['#9467bd', '#d62728', '#17becf', '#e377c2']
     
     # Create a pie chart
     fig_quarter_amount = px.pie(AT_grouped_quarter, values='Count', names='Quarter', 
-                                 title=f"Total Insurance Policies Purchased in Quarter for {user_year}",
-                                 color_discrete_sequence=custom_colors,hole=0.4)
+                                 title=f"Total Phonepe Users in Quarter for {user_year}",
+                                 color_discrete_sequence=custom_colors,hole=0.4, 
+                                 width=700, height=700)
     
     fig_quarter_amount.update_traces(textposition='inside', textinfo='percent+label')
     
@@ -1071,6 +1093,93 @@ def ins_quarter_C(user_year):
         width=600
     )    
     st.plotly_chart(fig_quarter_amount)
+
+def user_quarter_P(user_year):
+    filtered_df = agg_user_df[agg_user_df["Year"] == user_year]
+    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Percentage"]].sum()
+    AT_grouped_quarter.reset_index(inplace=True)
+    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
+    
+    custom_colors = ['#9467bd', '#d62728', '#17becf', '#e377c2']
+    
+    # Create a pie chart
+    fig_quarter_amount = px.pie(AT_grouped_quarter, values='Percentage', names='Quarter', 
+                                 title=f"Total Phonepe Users Percentage in Quarter for {user_year}",
+                                 color_discrete_sequence=custom_colors,hole=0.4, 
+                                 width=600, height=600)
+    
+    fig_quarter_amount.update_traces(textposition='inside', textinfo='percent+label')
+    
+    fig_quarter_amount.update_layout(
+        height=450,
+        width=600
+    )    
+    st.plotly_chart(fig_quarter_amount)
+
+def user_by_year_Count():
+    AT_grouped = agg_user_df.groupby(["Year", "Quarter"])[["Count", "Percentage"]].sum()
+    AT_grouped.reset_index(inplace=True)
+    AT_grouped["Quarter_numeric"] = AT_grouped["Quarter"].apply(map_quarter_to_numeric)
+    fig_year_quarter_count = px.bar(AT_grouped, x="Year", y="Count",
+                                    title="Total Phonepe Users by Year and Quarter",
+                                    height=550, width=550,
+                                    color="Quarter_numeric",  
+                                    barmode="stack")
+    
+    # Update x-axis ticks to show unique years
+    fig_year_quarter_count.update_xaxes(
+        tickvals=list(AT_grouped["Year"].unique()), 
+        ticktext=list(map(str, AT_grouped["Year"].unique()))
+    )
+    st.plotly_chart(fig_year_quarter_count)
+    
+def user_by_year_Percentage():
+    AT_grouped = agg_user_df.groupby(["Year", "Quarter"])[["Count", "Percentage"]].sum()
+    AT_grouped.reset_index(inplace=True)
+    AT_grouped["Quarter_numeric"] = AT_grouped["Quarter"].apply(map_quarter_to_numeric)
+    fig_year_quarter_count = px.bar(AT_grouped, x="Year", y="Percentage",
+                                    title="Percentage of Phonepe Users by Year and Quarter",
+                                    height=550, width=550,
+                                    color="Quarter_numeric",  
+                                    barmode="stack")
+    
+    # Update x-axis ticks to show unique years
+    fig_year_quarter_count.update_xaxes(
+        tickvals=list(AT_grouped["Year"].unique()), 
+        ticktext=list(map(str, AT_grouped["Year"].unique()))
+    )
+    st.plotly_chart(fig_year_quarter_count)
+
+def users_map(user_year):
+    MT=agg_user_df[agg_user_df["Year"]==user_year]
+    MT.reset_index(drop=True,inplace=True)
+    MTgroup=MT.groupby("State")[["Count","Amount"]].sum()
+    MTgroup.reset_index(inplace=True)
+
+    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
+    response=requests.get(url)
+    data=json.loads(response.content)
+    state_names=[]
+    for feauture in data["features"]:
+        state_names.append(feauture["properties"]["ST_NM"])
+        state_names.sort()
+
+    fig_india=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Amount",color_continuous_scale="Rainbow",
+                            range_color=(MTgroup["Amount"].min(),MTgroup["Amount"].max()),
+                            hover_name="State",title=f"Total Insurance Amount for the year {user_year}",
+                            fitbounds="locations",height=700,width=700)
+    fig_india.update_geos(visible = False)
+    fig_india.update_traces(hovertemplate='<b>%{hovertext}</b><br>Amount: %{z}')
+
+    fig_india1=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
+                            color="Count",color_continuous_scale="Rainbow",
+                            range_color=(MTgroup["Count"].min(),MTgroup["Count"].max()),
+                            hover_name="State",title=f"Total Insurance Transaction Count for the year {user_year}",
+                            fitbounds="locations",height=700,width=700)
+    fig_india1.update_geos(visible = False)
+    
+    return fig_india, fig_india1
 
 
 st.set_page_config(page_title="PHONEPE",page_icon=":iphone:",layout="wide")
@@ -1143,7 +1252,7 @@ if selected == "Transactions":
                                 columns=["State", "Transaction_Type", "Total_Amount"])
             fig_amount = px.pie(df_amount, names="Transaction_Type", values="Total_Amount", hover_data=['State'],
                                 labels={'Total_Amount': 'Total_Amount'}, hole=0.4,
-                                title="Amount Spent on Various Categories")
+                                title="Amount Spent on Various Categories", width=600, height=600)
             st.plotly_chart(fig_amount, use_container_width=True)
         
         with col2:
@@ -1155,7 +1264,7 @@ if selected == "Transactions":
                                 columns=["State", "Transaction_Type", "Total_Count"])
             fig_count = px.pie(df_count, names="Transaction_Type", values="Total_Count", hover_data=['State'],
                             labels={'Total_Count': 'Total_Count'}, hole=0.4,
-                            title="Transaction made on Various Categories")
+                            title="Transaction made on Various Categories", width=600, height=600)
             st.plotly_chart(fig_count, use_container_width=True)
 
     elif op1=="Quarter Wise Data":
@@ -1221,7 +1330,7 @@ if selected == "Insurance":
 if selected == "Users":
     option = st.radio(
     "Choose Type",
-    [":rainbow[Brand Wise]",":rainbow[State Wise]",":rainbow[Quarter Wise]",":rainbow[Year Wise]"])
+    [":rainbow[Brand Wise]",":rainbow[District Wise]",":rainbow[Quarter and Year Wise]"])
     if option == ":rainbow[Brand Wise]":
         col1,col2=st.columns(2)
         with col1:
@@ -1236,7 +1345,8 @@ if selected == "Users":
                                 columns=["State", "Brand_Name", "Transaction_Count"])
             fig_amount = px.pie(df_amount, names="Brand_Name", values="Transaction_Count", hover_data=['State'],
                                 labels={'Transaction_Count': 'Transaction_Count'}, hole=0.4,
-                                title="Transaction Count Made on Differnt Brands")
+                                title="Transaction Count Made on Differnt Brands",
+                                width=600, height=600)
             st.plotly_chart(fig_amount, use_container_width=True)
         with col2:
                 cursor.execute(f"""SELECT State, Brand_Name, Avg(Percentage) AS Avg_Percentage                   
@@ -1246,9 +1356,69 @@ if selected == "Users":
                 df_count = pd.DataFrame(cursor.fetchall(),
                                     columns=["State", "Brand_Name", "Avg_Percentage"])
                 fig_count = px.pie(df_count, names="Brand_Name", values="Avg_Percentage", hover_data=['State'],
-                                labels={'Avg_Percentage': 'Avg_Percentage'}, hole=0.4,
-                                title="Average Transaction Percentage made by Different Brands ")
+                                labels={'Avg_Percentage': 'Avg_Percentage',}, hole=0.4,
+                                title="Average Transaction Percentage made by Different Brands", 
+                                width=600, height=600)
                 st.plotly_chart(fig_count, use_container_width=True)
+    if option == ":rainbow[Quarter and Year Wise]":
+        col0,col01=st.columns(2)
+        with col0:
+            user_year1 = st.slider('Choose the Year',min_value=2018,max_value=2022)
+        col1,col2=st.columns(2)
+        with col1:
+            user_quarter_A(user_year1)
+        with col2:
+            user_by_year_Count()
+    if option == ":rainbow[District Wise]":
+        col0,col01=st.columns(2)
+        with col0:
+            cursor.execute("SELECT DISTINCT State FROM map_users")
+            list_of_states = [row[0] for row in cursor.fetchall()]
+            selected_state = st.selectbox("Choose One", list_of_states, index=0) 
+
+        col1,col2=st.columns(2)
+        with col1:
+            cursor.execute(f"""SELECT District_Name, SUM(App_Opens) AS Total_App_Opens
+                                FROM map_users
+                                WHERE State = '{selected_state}'
+                                GROUP BY District_Name;""")
+            district_data = cursor.fetchall()
+            district_df = pd.DataFrame(district_data, columns=["District", "App_Opens"])
+            fig = px.bar(district_df, x='District', y='App_Opens', title='App Opens by District',
+                         height=600)
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with col2:
+            cursor.execute(f"""SELECT District_Name, SUM(Registered_Users) AS Reg_users
+                                FROM map_users
+                                WHERE State = '{selected_state}'
+                                GROUP BY District_Name;""")
+            district_data = cursor.fetchall()
+            district_df = pd.DataFrame(district_data, columns=["District", "Registered Users"])
+            fig = px.bar(district_df, x='District', y='Registered Users', title='Registered Users by District',
+                         height=600)
+            st.plotly_chart(fig, use_container_width=True)
+    
+            
+if selected == "Data Analysis":
+    st.header("Data Analysis")
+    question = st.selectbox("Choose the question to get the result.", ("Choose one Question",
+        "1. What are the names of all the videos and their corresponding channels?",
+        "2. Which channels have the most number of videos, and how many videos do they have?",
+        "3. What are the top 10 most viewed videos and their respective channels?",
+        "4. How many comments were made on each video, and what are their corresponding video names?",
+        "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
+        "6. What is the total number of likes for each video, and what are their corresponding video names?",
+        "7. What is the total number of views for each channel, and what are their corresponding channel names?",
+        "8. What are the names of all the channels that have published videos in the year 2022?",
+        "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
+        "10. Which videos have the highest number of comments, and what are their corresponding channel names?"
+    ))
+
+
+
+
+
             
         
     
