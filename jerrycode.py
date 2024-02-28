@@ -721,9 +721,6 @@ def top_ten_states():
                              labels={'Total_Amount':'Total_amount'})
     fig.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig,use_container_width=True)
-    st.write(df)
-
-
 
 #DASHBOARD- TOP 10 DISTRICTS(TRAN_AMOUNT)
 def top_ten_districts():
@@ -1406,15 +1403,97 @@ if selected == "Data Analysis":
         "1. Top 10 States in Terms of Insurance Penetration",
         "2. Transaction Types with the Highest Amount Spent",
         "3. Trend Analysis of Yearly Phonepe Transaction",
-        "4. Which year had a higher total number of insurance cases in the Tamil Nadu",
+        "4. Which year had a highest total number of insurance cases in the Tamil Nadu",
         "5. Which category of transactions had the lowest volume in Andaman and Nicobar Islands in January 2018",
         '''6.Can you identify any notable trends or patterns in transaction volumes across different categories in 
             Andaman and Nicobar Islands in January 2018''',
         "7. What were the top three smartphone brands used phonepay in the year 2022?",
-        "8. What are the top 10 postal codes used Phonepay for transaction?",
-        "9. What is the average transaction amount of iOS and Android users?",
+        "8. What are the top 10 postal codes used spent highest amount using Phonepay?",
+        "9. What is the average transaction of iOS and Android users?",
         "10. Which state has the highest growth in insurance, transactions and what percentage?"
     ))
+    connection = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='Phonepay',
+        host='localhost'
+    )
+    cursor=connection.cursor()
+
+    if question == "1. Top 10 States in Terms of Insurance Penetration":
+        sql_query=('''SELECT State, SUM(Count) AS Total_count
+                    FROM aggregated_insurance
+                    GROUP BY State
+                    ORDER BY Total_count DESC
+                    LIMIT 10;''')
+        cursor.execute(sql_query)
+        res=cursor.fetchall()
+        df = pd.DataFrame(res, columns=['State', 'Total Insurance'])
+        df.index = df.index + 1
+        st.write(df)
+    elif question == "2. Transaction Types with the Highest Amount Spent":
+        sql_query=("""SELECT Transaction_Type,SUM(Transaction_Amount) AS Total_Amount_Spent
+                    FROM aggregated_transaction GROUP BY Transaction_Type ORDER BY Total_Amount_Spent DESC
+                    LIMIT 1;""")
+        cursor.execute(sql_query)
+        res=cursor.fetchall()
+        transaction_type, total_amount_spent = res[0]
+        st.subheader(f"{transaction_type} - Total Amount Spent: {total_amount_spent}")
+
+    elif question == "3. Trend Analysis of Yearly Phonepe Transaction":
+        sql_query=('''SELECT Year,SUM(Transaction_Count) AS Total_Transaction_Count
+                        FROM aggregated_transaction GROUP BY Year ORDER BY Year;''')
+        cursor.execute(sql_query)
+        res=cursor.fetchall()
+        df = pd.DataFrame(res, columns=['Year', 'Total_Transaction_Count'])
+        df.set_index('Year', inplace=True)
+        st.line_chart(df)
+        fig = px.line(df, x=df.index, y='Total_Transaction_Count', 
+                      title='Trend Analysis of Yearly PhonePe Transaction')
+        st.plotly_chart(fig)
+
+    elif question == "4. Which year had a highest total number of insurance cases in the Tamil Nadu":
+        sql_query = ('''SELECT Year, SUM(Count) AS Total_Insurance_Cases
+                        FROM map_transaction 
+                        WHERE State = 'Tamil Nadu'
+                        GROUP BY Year 
+                        ORDER BY Total_Insurance_Cases DESC 
+                        LIMIT 1;''')
+        cursor.execute(sql_query)
+        res = cursor.fetchall()
+        year, total_insurance_cases = res[0]
+        st.subheader(f"{year} - Total Insurance Cases: {total_insurance_cases}")
+
+    elif question == """5. Which category of transactions had the lowest volume in 
+                            Andaman and Nicobar Islands""":
+        sql_query=('''SELECT Transaction_Type,SUM(Transaction_Count) AS Total_Volume
+                        FROM aggregated_transaction
+                        WHERE State = 'Andaman and Nicobar Islands'
+                        GROUP BY Transaction_Type ORDER BY Total_Volume ASC LIMIT 1;''')
+        cursor.execute(sql_query)
+        res = cursor.fetchall()
+        transaction_type, Total_Volume = res[0]
+        st.subheader(f"{transaction_type} - Lowest Transaction with the Transaction Count {Total_Volume}")
+
+        
+    elif question == "8. What are the top 10 postal codes used spent highest amount using Phonepay?":
+        sql_query=('''SELECT tu.Pincodes, SUM(tt.Amount) AS Total_Amount
+                    FROM top_transaction AS tt
+                    INNER JOIN top_users AS tu ON tt.state = tu.state
+                    GROUP BY tt.District_Name, tu.Pincodes
+                    ORDER BY Total_Amount DESC
+                    LIMIT 10;''')
+        cursor.execute(sql_query)
+        res=cursor.fetchall()
+        df = pd.DataFrame(res, columns=['Postal Codes', 'Total_Amount'])
+        df['Postal Codes'] = df['Postal Codes'].astype(str).str.replace(',', '')
+        df.index = df.index + 1
+        
+        st.write(df)
+    
+
+
+
 
 
 
