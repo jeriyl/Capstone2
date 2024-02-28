@@ -10,7 +10,6 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import locale
-from streamlit_lottie import st_lottie
 
 def agg_insurance():
     connection = mysql.connector.connect(
