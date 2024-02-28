@@ -1223,7 +1223,38 @@ if selected == "Users":
     "Choose Type",
     [":rainbow[Brand Wise]",":rainbow[State Wise]",":rainbow[Quarter Wise]",":rainbow[Year Wise]"])
     if option == ":rainbow[Brand Wise]":
-        st.write("Hi")
+        col1,col2=st.columns(2)
+        with col1:
+            user_year1 = st.slider('Choose the Year',min_value=2018,max_value=2022)
+        col1, col2 = st.columns(2)
+        with col1:
+            cursor.execute(f"""SELECT State, Brand_Name, SUM(Count) AS Transaction_Count                   
+                            FROM aggregated_user 
+                            WHERE Year = {user_year1}
+                            GROUP BY State, Brand_Name;""")
+            df_amount = pd.DataFrame(cursor.fetchall(),
+                                columns=["State", "Brand_Name", "Transaction_Count"])
+            fig_amount = px.pie(df_amount, names="Brand_Name", values="Transaction_Count", hover_data=['State'],
+                                labels={'Transaction_Count': 'Transaction_Count'}, hole=0.4,
+                                title="Transaction Count Made on Differnt Brands")
+            st.plotly_chart(fig_amount, use_container_width=True)
+        with col2:
+                cursor.execute(f"""SELECT State, Brand_Name, Avg(Percentage) AS Avg_Percentage                   
+                                FROM aggregated_user
+                                WHERE Year = {user_year1}
+                                GROUP BY State, Brand_Name;""")
+                df_count = pd.DataFrame(cursor.fetchall(),
+                                    columns=["State", "Brand_Name", "Avg_Percentage"])
+                fig_count = px.pie(df_count, names="Brand_Name", values="Avg_Percentage", hover_data=['State'],
+                                labels={'Avg_Percentage': 'Avg_Percentage'}, hole=0.4,
+                                title="Average Transaction Percentage made by Different Brands ")
+                st.plotly_chart(fig_count, use_container_width=True)
+            
+        
+    
+
+        
+        
 
         
 
