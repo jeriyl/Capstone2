@@ -1226,6 +1226,8 @@ if selected == "Dash Board":
         top_ten_pcode()
 
 if selected == "Transactions":
+    st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">Exploring the Dynamics of PhonePe Transactions 💳📊</h1>',
+                 unsafe_allow_html=True)
     col0,col01=st.columns(2)
     with col0:
         st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
@@ -1290,6 +1292,8 @@ if selected == "Transactions":
             st.plotly_chart(fig_india1)
 
 if selected == "Insurance":
+    st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">Analyzing Phonepe Insurance Data: Insights by State and Year📅🔍</h1>',
+                 unsafe_allow_html=True)
     st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
     genre = st.radio(
     "Choose Type",
@@ -1323,6 +1327,8 @@ if selected == "Insurance":
             ins_quarter_A(user_year1)
 
 if selected == "Users":
+    st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">Exploring Total PhonePe Users 📱 Understanding the Growth and Reach📈</h1>',
+                 unsafe_allow_html=True)
     st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
     option = st.radio(
     "Choose Type",
@@ -1394,8 +1400,10 @@ if selected == "Users":
             st.plotly_chart(fig, use_container_width=True)
                
 if selected == "Data Analysis":
-    st.header("Data Analysis")
-    question = st.selectbox("Choose the question to get the result.", ("Choose one Question",
+    st.markdown('<h1 style="color: green; font-size: 25pt; font-weight: bold;">Unlocking Valuable Insights🔍: Answering Key Questions with Data Analysis📊</h1>',
+                 unsafe_allow_html=True)
+    st.subheader("Addressing Key Questions for Actionable Understanding")
+    question = st.selectbox("Questions for Optimal Results", ("Choose one Question",
         "1. Top 10 States in Terms of Insurance Penetration",
         "2. Transaction Types with the Highest Amount Spent",
         "3. Trend Analysis of Yearly Phonepe Transaction",
