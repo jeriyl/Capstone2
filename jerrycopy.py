@@ -862,6 +862,7 @@ def aggregated_transaction_by_quarter_A(user_year):
         height=450,
         width=600
     )
+    
     st.plotly_chart(fig_quarter_amount)
 
 #TRANSACTION - TOTAL TRANSACTION BY QUARTER - COUNT
@@ -933,149 +934,11 @@ def aggregated_transaction_by_year_amountA():
     
     st.plotly_chart(fig_year_quarter_count)
 
-#TRANSACTION-MAP-YEAR
-def agg_transaction(user_year):
-    MT=agg_trans_df[agg_trans_df["Year"]==user_year]
-    MT.reset_index(drop=True,inplace=True)
-    MTgroup=MT.groupby("State")[["Count","Amount"]].sum()
-    MTgroup.reset_index(inplace=True)
-
-    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
-    response=requests.get(url)
-    data=json.loads(response.content)
-    state_names=[]
-    for feauture in data["features"]:
-        state_names.append(feauture["properties"]["ST_NM"])
-        state_names.sort()
-
-    fig_india=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Amount",color_continuous_scale="Rainbow",
-                            range_color=(MTgroup["Amount"].min(),MTgroup["Amount"].max()),
-                            hover_name="State",title=f"Total Amount for the year {user_year}",
-                            fitbounds="locations",height=700,width=700)
-    fig_india.update_geos(visible = False)
-    fig_india.update_traces(hovertemplate='<b>%{hovertext}</b><br>Amount: %{z}')
-
-    fig_india1=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Count",color_continuous_scale="Rainbow",
-                            range_color=(MTgroup["Count"].min(),MTgroup["Count"].max()),
-                            hover_name="State",title=f"Total Transaction Count for the year {user_year}",
-                            fitbounds="locations",height=700,width=700)
-    fig_india1.update_geos(visible = False)
-    
-    return fig_india, fig_india1
-
-def ins_map(user_year):
-    MT=agg_ins_df[agg_ins_df["Year"]==user_year]
-    MT.reset_index(drop=True,inplace=True)
-    MTgroup=MT.groupby("State")[["Count","Amount"]].sum()
-    MTgroup.reset_index(inplace=True)
-
-    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
-    response=requests.get(url)
-    data=json.loads(response.content)
-    state_names=[]
-    for feauture in data["features"]:
-        state_names.append(feauture["properties"]["ST_NM"])
-        state_names.sort()
-
-    fig_india=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Amount",color_continuous_scale="Rainbow",
-                            range_color=(MTgroup["Amount"].min(),MTgroup["Amount"].max()),
-                            hover_name="State",title=f"Total Insurance Amount for the year {user_year}",
-                            fitbounds="locations",height=700,width=700)
-    fig_india.update_geos(visible = False)
-    fig_india.update_traces(hovertemplate='<b>%{hovertext}</b><br>Amount: %{z}')
-
-    fig_india1=px.choropleth(MTgroup,geojson=data, locations="State", featureidkey="properties.ST_NM",
-                            color="Count",color_continuous_scale="Rainbow",
-                            range_color=(MTgroup["Count"].min(),MTgroup["Count"].max()),
-                            hover_name="State",title=f"Total Insurance Transaction Count for the year {user_year}",
-                            fitbounds="locations",height=700,width=700)
-    fig_india1.update_geos(visible = False)
-    
-    return fig_india, fig_india1
-
-def aggregated_insurance_by_year_Count():
-    AT_grouped = agg_ins_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
-    AT_grouped.reset_index(inplace=True)
-    AT_grouped["Quarter_numeric"] = AT_grouped["Quarter"].apply(map_quarter_to_numeric)
-    fig_year_quarter_count = px.bar(AT_grouped, x="Year", y="Count",
-                                    title="Total Insurance Transaction Count by Year and Quarter",
-                                    height=550, width=550,
-                                    color="Quarter_numeric",  
-                                    barmode="stack")
-    
-    # Update x-axis ticks to show unique years
-    fig_year_quarter_count.update_xaxes(
-        tickvals=list(AT_grouped["Year"].unique()), 
-        ticktext=list(map(str, AT_grouped["Year"].unique()))
-    )
-    st.plotly_chart(fig_year_quarter_count)
-
-def aggregated_insurance_by_year_Amount():
-    AT_grouped = agg_ins_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
-    AT_grouped.reset_index(inplace=True)
-    AT_grouped["Quarter_numeric"] = AT_grouped["Quarter"].apply(map_quarter_to_numeric)
-    fig_year_quarter_count = px.bar(AT_grouped, x="Year", y="Amount",
-                                    title="Total Insurance Transaction Amount by Year and Quarter",
-                                    height=550, width=550,
-                                    color="Quarter_numeric",  
-                                    barmode="stack")
-    
-    # Update x-axis ticks to show unique years
-    fig_year_quarter_count.update_xaxes(
-        tickvals=list(AT_grouped["Year"].unique()), 
-        ticktext=list(map(str, AT_grouped["Year"].unique()))
-    )
-    st.plotly_chart(fig_year_quarter_count)
-
-def ins_quarter_A(user_year):
-    filtered_df = agg_ins_df[agg_ins_df["Year"] == user_year]
-    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
-    AT_grouped_quarter.reset_index(inplace=True)
-    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
-    
-    custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
-    
-    # Create a pie chart
-    fig_quarter_amount = px.pie(AT_grouped_quarter, values='Amount', names='Quarter', 
-                                 title=f"Total Insurance Transaction Amount in Quarter for {user_year}",
-                                 color_discrete_sequence=custom_colors,hole=0.4)
-    
-    fig_quarter_amount.update_traces(textposition='inside', textinfo='percent+label')
-    
-    fig_quarter_amount.update_layout(
-        height=450,
-        width=600
-    )    
-    st.plotly_chart(fig_quarter_amount)
-
-def ins_quarter_C(user_year):
-    filtered_df = agg_ins_df[agg_ins_df["Year"] == user_year]
-    AT_grouped_quarter = filtered_df.groupby(["Year", "Quarter"])[["Count", "Amount"]].sum()
-    AT_grouped_quarter.reset_index(inplace=True)
-    AT_grouped_quarter['Year'] = AT_grouped_quarter['Year'].astype(str)
-    
-    custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
-    
-    # Create a pie chart
-    fig_quarter_amount = px.pie(AT_grouped_quarter, values='Count', names='Quarter', 
-                                 title=f"Total Insurance Policies Purchased in Quarter for {user_year}",
-                                 color_discrete_sequence=custom_colors,hole=0.4)
-    
-    fig_quarter_amount.update_traces(textposition='inside', textinfo='percent+label')
-    
-    fig_quarter_amount.update_layout(
-        height=450,
-        width=600
-    )    
-    st.plotly_chart(fig_quarter_amount)
-
+#TRANSACTION - TRANSACTION TYPE - AMOUNT
 
 st.set_page_config(page_title="PHONEPE",page_icon=":iphone:",layout="wide")
 selected=option_menu(menu_title="PHONEPE PULSE DATA VISUALIZATION AND EXPLORATION",
-                    options=["Dash Board","Insurance","Transactions","Users","Data Analysis"],
+                    options=["Dash Board","Top_Charts","Transactions","Users","Data Analysis"],
                     icons=["window-dash","cash-coin","currency-exchange","people-fill","search"],
                     default_index=0,
                     orientation="horizontal"
@@ -1123,114 +986,97 @@ if selected == "Dash Board":
     with col8:
         if st.button("Top 10 Postal Codes"):
             top_ten_pcode()
-
-if selected == "Transactions":
-    col0,col01=st.columns(2)
-    with col0:
-        op1=st.selectbox("Choose Type",("Choose One","Transaction Type","Year Wise Data","Quarter Wise Data",
-                                    "State Wise"))
-    if op1 == "Transaction Type":
-        col111,col112=st.columns(2)
-        with col111:
-            user_year1 = st.slider('Choose the Year',min_value=2018,max_value=2023)
-        col1, col2 = st.columns(2)
-        with col1:
-            cursor.execute(f"""SELECT State, Transaction_Type, SUM(Transaction_Amount) AS Total_Amount                   
-                            FROM aggregated_transaction 
-                            WHERE Year = {user_year1}
-                            GROUP BY State, Transaction_Type;""")
-            df_amount = pd.DataFrame(cursor.fetchall(),
-                                columns=["State", "Transaction_Type", "Total_Amount"])
-            fig_amount = px.pie(df_amount, names="Transaction_Type", values="Total_Amount", hover_data=['State'],
-                                labels={'Total_Amount': 'Total_Amount'}, hole=0.4,
-                                title="Amount Spent on Various Categories")
-            st.plotly_chart(fig_amount, use_container_width=True)
-        
-        with col2:
-            cursor.execute(f"""SELECT State, Transaction_Type, SUM(Transaction_Count) AS Total_Count                   
-                            FROM aggregated_transaction 
-                            WHERE Year = {user_year1}
-                            GROUP BY State, Transaction_Type;""")
-            df_count = pd.DataFrame(cursor.fetchall(),
-                                columns=["State", "Transaction_Type", "Total_Count"])
-            fig_count = px.pie(df_count, names="Transaction_Type", values="Total_Count", hover_data=['State'],
-                            labels={'Total_Count': 'Total_Count'}, hole=0.4,
-                            title="Transaction made on Various Categories")
-            st.plotly_chart(fig_count, use_container_width=True)
-
-    elif op1=="Quarter Wise Data":
-        col31,col32=st.columns(2)
-        col3,col4=st.columns(2)
-        with col31:
-            user_year = st.slider("**Year**", min_value=2018, max_value=2022)
-        with col3:
-            aggregated_transaction_by_quarter_A(user_year)
-        with col4:
-            aggregated_transaction_by_quarter_C(user_year)
-    elif op1 == "Year Wise Data":
-        col5,col6=st.columns(2)
-        with col5:
-            aggregated_transaction_by_year_amountC()
-        with col6:
-            aggregated_transaction_by_year_amountA()
-
-    elif op1 == "State Wise":
-        col71,col81=st.columns(2)
-        with col71:
-            user_year = st.slider("**Year**", min_value=2018, max_value=2022)
-        col7,col8=st.columns(2)
-        fig_india, fig_india1 = agg_transaction(user_year)
-        with col7:
-            st.plotly_chart(fig_india)
-        with col8:
-            st.plotly_chart(fig_india1)
-
-if selected == "Insurance":
-    genre = st.radio(
-    "Choose Type",
-    [":rainbow[State Wise]",":rainbow[Year Wise]",":rainbow[Quarter Wise]" ])
-    if genre == ':rainbow[State Wise]':
-        col91,col92=st.columns(2)
-        with col91:
-            user_year1 = st.slider('Choose the Year',min_value=2020,max_value=2023)
-        ins_map1,ins_map2 = ins_map(user_year1)
-        col9,col10=st.columns(2)
-        col91,col92=st.columns(2)
-        with col9:
-            st.plotly_chart(ins_map1)
-        with col10:
-            st.plotly_chart(ins_map2)
+if selected == "Top_Charts":
+    st.markdown("## :violet[Top Charts]")
+    Type = st.sidebar.selectbox("**Type**", ("Transactions", "Users"))
+    colum1,colum2= st.columns([1,1.5],gap="large")
+    with colum1:
+        Year = st.slider("**Year**", min_value=2018, max_value=2022)
+        Quarter = st.slider("Quarter", min_value=1, max_value=4)
     
-    if genre == ':rainbow[Year Wise]':
-        col11,col12=st.columns(2)
-        with col11:
-            aggregated_insurance_by_year_Amount()
-        with col12:
-            aggregated_insurance_by_year_Count()
+    with colum2:
+        st.info(
+                """
+                #### From this menu we can get insights like :
+                - Overall ranking on a particular Year and Quarter.
+                - Top 10 State, District, Pincode based on Total number of transaction and Total amount spent on phonepe.
+                - Top 10 State, District, Pincode based on Total phonepe users and their app opening frequency.
+                - Top 10 mobile brands and its percentage based on the how many people use phonepe.
+                """,icon="🔍"
+                )
+    if Type == "Transactions":
+        col1,col2,col3 = st.columns([1,1,1],gap="small")
         
-    if genre == ':rainbow[Quarter Wise]':
-        col131,col132=st.columns(2)
-        with col131:
-            user_year1 = st.slider('Choose the Year',min_value=2020,max_value=2023)
-        col13,col14=st.columns(2)
-        with col13:
-            ins_quarter_C(user_year1)
-        with col14:
-            ins_quarter_A(user_year1)
+        with col1:
+            st.markdown("### :violet[State]")
+            cursor.execute("""select State, sum(Transaction_Count) as Total_Transactions_Count, 
+                           sum(Transaction_Amount) as Total from agg_trans 
+                           where year = {Year} and quarter = {Quarter} group by state order by Total desc limit 10""")           
+            df = pd.DataFrame(cursor.fetchall(), columns=['State', 'Transactions_Count','Total_Amount'])
+            fig = px.pie(df, values='Total_Amount',
+                             names='State',
+                             title='Top 10',
+                             color_discrete_sequence=px.colors.sequential.Agsunset,
+                             hover_data=['Transactions_Count'],
+                             labels={'Transactions_Count':'Transactions_Count'})
 
-if selected == "Users":
-    option = st.radio(
-    "Choose Type",
-    [":rainbow[Brand Wise]",":rainbow[State Wise]",":rainbow[Quarter Wise]",":rainbow[Year Wise]"])
-    if option == ":rainbow[Brand Wise]":
-        st.write("Hi")
+            fig.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig,use_container_width=True)
+            
+        with col2:
+            st.markdown("### :violet[District]")
+            cursor.execute("""select District_Name,sum(Count) as Total_Count, sum(Amount) as Total from map_transaction
+                            where Year = {Year} and Quarter = {Quarter} group by District_Name 
+                            order by Total desc limit 10""")
+            df = pd.DataFrame(cursor.fetchall(), columns=['District', 'Transactions_Count','Total_Amount'])
 
+            fig = px.pie(df, values='Total_Amount',
+                             names='District',
+                             title='Top 10',
+                             color_discrete_sequence=px.colors.sequential.Agsunset,
+                             hover_data=['Transactions_Count'],
+                             labels={'Transactions_Count':'Transactions_Count'})
+
+            fig.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig,use_container_width=True)
+            
+            
+# Top Charts - USERS          
+    if Type == "Users":
+        col1,col2,col3,col4 = st.columns([2,2,2,2],gap="small")
+        
+        with col1:
+            st.markdown("### :violet[Brands]")
+            if Year == 2022 and Quarter in [2,3,4]:
+                st.markdown("#### Sorry No Data to Display for 2022 Qtr 2,3,4")
+            else:
+                cursor.execute("""select Brand_Name, sum(Count) as Total_Count, avg(Percentage)*100 as Avg_Percentage 
+                               from aggregated_user
+                               where year = {Year} and quarter = {Quarter} group by Brand_Name 
+                               order by Total_Count desc limit 10""")
+                df = pd.DataFrame(cursor.fetchall(), columns=['Brand_Name', 'Total_Users','Avg_Percentage'])
+                fig = px.bar(df,
+                             title='Top 10',
+                             x="Total_Users",
+                             y="Brand_Name",
+                             orientation='h',
+                             color='Avg_Percentage',
+                             color_continuous_scale=px.colors.sequential.Agsunset)
+                st.plotly_chart(fig,use_container_width=True)   
+    
+       
+        
+    
+
+    
         
 
+    
         
 
 
 
-   
 
-        
+
+
+
