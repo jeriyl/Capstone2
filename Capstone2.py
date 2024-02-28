@@ -8,7 +8,6 @@ import plotly.express as px
 import requests
 import json
 import numpy as np
-import matplotlib.pyplot as plt
 import locale
 
 def agg_insurance():
@@ -1295,7 +1294,6 @@ if selected == "Insurance":
     genre = st.radio(
     "Choose Type",
     [":rainbow[State Wise]",":rainbow[Year Wise]",":rainbow[Quarter Wise]"])
-
     if genre == ':rainbow[State Wise]':
         col91,col92=st.columns(2)
         with col91:
@@ -1306,8 +1304,7 @@ if selected == "Insurance":
         with col9:
             st.plotly_chart(ins_map1)
         with col10:
-            st.plotly_chart(ins_map2)
-    
+            st.plotly_chart(ins_map2)    
     if genre == ':rainbow[Year Wise]':
         col11,col12=st.columns(2)
         with col11:
@@ -1327,11 +1324,9 @@ if selected == "Insurance":
 
 if selected == "Users":
     st.write("<style>div.row-widget.stRadio > div{flex-direction:row;}</style>", unsafe_allow_html=True)
-
     option = st.radio(
     "Choose Type",
-    [":rainbow[Brand Wise]",":rainbow[District Wise]",":rainbow[Quarter and Year Wise]"])
-    
+    [":rainbow[Brand Wise]",":rainbow[District Wise]",":rainbow[Quarter and Year Wise]"])   
     if option == ":rainbow[Brand Wise]":
         col1,col2=st.columns(2)
         with col1:
@@ -1376,7 +1371,6 @@ if selected == "Users":
             cursor.execute("SELECT DISTINCT State FROM map_users")
             list_of_states = [row[0] for row in cursor.fetchall()]
             selected_state = st.selectbox("Choose One", list_of_states, index=0) 
-
         col1,col2=st.columns(2)
         with col1:
             cursor.execute(f"""SELECT District_Name, SUM(App_Opens) AS Total_App_Opens
@@ -1387,8 +1381,7 @@ if selected == "Users":
             district_df = pd.DataFrame(district_data, columns=["District", "App_Opens"])
             fig = px.bar(district_df, x='District', y='App_Opens', title='App Opens by District',
                          height=600)
-            st.plotly_chart(fig, use_container_width=True)
-            
+            st.plotly_chart(fig, use_container_width=True)           
         with col2:
             cursor.execute(f"""SELECT District_Name, SUM(Registered_Users) AS Reg_users
                                 FROM map_users
@@ -1399,8 +1392,7 @@ if selected == "Users":
             fig = px.bar(district_df, x='District', y='Registered Users', title='Registered Users by District',
                          height=600)
             st.plotly_chart(fig, use_container_width=True)
-    
-            
+               
 if selected == "Data Analysis":
     st.header("Data Analysis")
     question = st.selectbox("Choose the question to get the result.", ("Choose one Question",
@@ -1442,7 +1434,6 @@ if selected == "Data Analysis":
         res=cursor.fetchall()
         transaction_type, total_amount_spent = res[0]
         st.subheader(f"{transaction_type} - Total Amount Spent: {total_amount_spent}")
-
     elif question == "3. Trend Analysis of Yearly Phonepe Transaction":
         sql_query=('''SELECT Year,SUM(Transaction_Count) AS Total_Transaction_Count
                         FROM aggregated_transaction GROUP BY Year ORDER BY Year;''')
@@ -1454,7 +1445,6 @@ if selected == "Data Analysis":
         fig = px.line(df, x=df.index, y='Total_Transaction_Count', 
                       title='Trend Analysis of Yearly PhonePe Transaction')
         st.plotly_chart(fig)
-
     elif question == "4. Which year had a highest total number of insurance cases in the Tamil Nadu":
         sql_query = ('''SELECT Year, SUM(Count) AS Total_Insurance_Cases
                         FROM map_transaction 
@@ -1466,7 +1456,6 @@ if selected == "Data Analysis":
         res = cursor.fetchall()
         year, total_insurance_cases = res[0]
         st.subheader(f"{year} - Total Insurance Cases: {total_insurance_cases}")
-
     elif question == """5. Which category of transactions had the lowest volume in Andaman and Nicobar Islands?""":
         sql_query=('''SELECT Transaction_Type,SUM(Transaction_Count) AS Total_Volume
                         FROM aggregated_transaction
@@ -1476,7 +1465,6 @@ if selected == "Data Analysis":
         res = cursor.fetchall()
         transaction_type, total_volume = res[0]
         st.subheader(f"{transaction_type} - Lowest Count {total_volume}")
-
     elif question == '6.Can you identify any notable trends or patterns in transaction volumes across different categories?':
         sql_query = '''SELECT Transaction_Type, SUM(Transaction_Count) AS Total_Count
                FROM aggregated_transaction
@@ -1506,8 +1494,7 @@ if selected == "Data Analysis":
         res = cursor.fetchall()
         df = pd.DataFrame(res, columns=['Brand_Name', 'Total_Count'])
         df.index = df.index + 1
-        st.write(df)
-          
+        st.write(df) 
     elif question == "8. What are the top 10 postal codes used spent highest amount using Phonepay?":
         sql_query=('''SELECT tu.Pincodes, SUM(tt.Amount) AS Total_Amount
                     FROM top_transaction AS tt
@@ -1520,7 +1507,6 @@ if selected == "Data Analysis":
         df = pd.DataFrame(res, columns=['Postal Codes', 'Total_Amount'])
         df['Postal Codes'] = df['Postal Codes'].astype(str).str.replace(',', '')
         df.index = df.index + 1
-        
         st.write(df)
     elif question == "9. Which District has less Phonepe Registered Users?":
         cursor.execute('SELECT DISTINCT State FROM map_users')
@@ -1528,8 +1514,6 @@ if selected == "Data Analysis":
         unique_states = [state[0] for state in unique_states_data]
 
         selected_state = st.selectbox('Select a State:', unique_states)
-
-        # Fetch districts with the least registered users for the selected state
         sql_query = f'''
                     SELECT District_Name
                     FROM map_users
@@ -1540,15 +1524,9 @@ if selected == "Data Analysis":
                     '''
         cursor.execute(sql_query)
         res = cursor.fetchall()
-
-        # Create a DataFrame from the fetched data
         df = pd.DataFrame(res, columns=['District Name'])
         df.index = df.index + 1
-
-        # Display the DataFrame
         st.write(df)
-
-
     elif question == "10. Which 10 state has the highest growth in insurance, transactions and what percentage?":
         sql_query=('''SELECT State, 
                         SUM(Count) AS Total_Count, 
@@ -1567,35 +1545,6 @@ if selected == "Data Analysis":
         fig1 = px.bar(df, x='State', y='Avg_Amount', title='State vs Average Amount of Insurance',color='Avg_Amount')
         with col1:
             st.plotly_chart(fig1)
-    
     x=st.button("Done")
     if x:
         st.snow()
-                
-
-
-    
-
-
-
-
-
-
-
-
-            
-        
-    
-
-        
-        
-
-        
-
-        
-
-
-
-   
-
-        
